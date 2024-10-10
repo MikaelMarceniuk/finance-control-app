@@ -9,8 +9,8 @@ type apiResponse = {
 	amount: number
 	date: Date
 	category: {
-		id: number
-		label: string
+		id: string
+		name: string
 	}
 	installmentAmout: number
 	installment: number
@@ -21,8 +21,8 @@ type AddExpenseApiParams = {
 	amount: number
 	date: Date
 	category: {
-		id: number
-		label: string
+		id: string
+		name: string
 	}
 	installmentAmout: number
 }

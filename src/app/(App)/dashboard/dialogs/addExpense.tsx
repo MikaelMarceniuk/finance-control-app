@@ -25,18 +25,18 @@ import { Textarea } from '@/components/ui/textarea'
 import { useToast } from '@/hooks/use-toast'
 import CurrencyInput from '@/components/ui/currencyInput'
 import { Input } from '@/components/ui/input'
-import ComboboxInput from '@/components/ui/combobox'
 import AddExpenseApi from '@/api/addExpenseApi'
 import useGetExpense from '@/hooks/useGetExpense'
 import { endOfMonth, isWithinInterval, startOfMonth } from 'date-fns'
+import CategoryComboboxInput from '@/components/ui/categoryComboboxInput'
 
 const formSchema = z.object({
 	description: z.string().min(0),
 	amount: z.string(),
 	date: z.date(),
 	category: z.object({
-		id: z.number(),
-		label: z.string(),
+		id: z.string(),
+		name: z.string(),
 	}),
 	installmentAmout: z.coerce.number(),
 })
@@ -158,14 +158,9 @@ const AddExpenseDialog = () => {
 									<FormItem>
 										<FormLabel>Categoria</FormLabel>
 										<FormControl>
-											<ComboboxInput
+											<CategoryComboboxInput
 												value={field.value}
 												handleOnChange={field.onChange}
-												options={[
-													{ id: 1, label: 'Transporte' },
-													{ id: 2, label: 'Diversao' },
-													{ id: 3, label: 'Streaming' },
-												]}
 											/>
 										</FormControl>
 										<FormMessage />
