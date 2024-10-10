@@ -38,9 +38,9 @@ const AddExpenseApi = async (
 		try {
 			await axiosInstance.post('/expense', {
 				...body,
-				amount: (body.amount / installmentAmout) * 100,
+				amount: body.amount / installmentAmout,
 				installment: i + 1,
-				date: add(date, { months: i + 1 }),
+				date: add(date, { months: i }),
 			})
 
 			reqResponses.push(200)

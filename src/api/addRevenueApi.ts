@@ -25,7 +25,7 @@ const AddRevenueApi = async (
 	body: AddRevenueApiParams,
 ): Promise<AddRevenueResponse> => {
 	try {
-		await axiosInstance.post('/revenue', { ...body, amount: body.amount * 100 })
+		await axiosInstance.post('/revenue', body)
 
 		return {
 			isSuccess: true,
