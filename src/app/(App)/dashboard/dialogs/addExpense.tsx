@@ -27,6 +27,8 @@ import CurrencyInput from '@/components/ui/currencyInput'
 import { Input } from '@/components/ui/input'
 import ComboboxInput from '@/components/ui/combobox'
 import AddExpenseApi from '@/api/addExpenseApi'
+import useGetExpense from '@/hooks/useGetExpense'
+import { endOfMonth, isWithinInterval, startOfMonth } from 'date-fns'
 
 const formSchema = z.object({
 	description: z.string().min(0),
@@ -43,6 +45,10 @@ type formData = z.infer<typeof formSchema>
 
 const AddExpenseDialog = () => {
 	const { toast } = useToast()
+	const { expenses, mutate } = useGetExpense({
+		startDate: startOfMonth(new Date()),
+		endDate: endOfMonth(new Date()),
+	})
 
 	const form = useForm<formData>({
 		resolver: zodResolver(formSchema),
@@ -68,6 +74,19 @@ const AddExpenseDialog = () => {
 				title: 'Despesa salva com sucesso!',
 				variant: 'success',
 			})
+
+			const currentMonthExpense = apiResp.data.find((p) =>
+				isWithinInterval(new Date(p.date), {
+					start: startOfMonth(new Date()),
+					end: endOfMonth(new Date()),
+				}),
+			)
+			if (currentMonthExpense) {
+				mutate({
+					isSuccess: true,
+					data: [...expenses, currentMonthExpense],
+				})
+			}
 			return
 		}
 

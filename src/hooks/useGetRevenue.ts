@@ -3,8 +3,8 @@ import GetRevenueApi from '@/api/getRevenueApi'
 import useSWR from 'swr'
 
 const useGetRevenue = (apiParams: GetExpenseApiParams) => {
-	const { data, error, isLoading } = useSWR(
-		'http://localhost:3010/revenue',
+	const { data, error, isLoading, mutate } = useSWR(
+		['revenue', { start: apiParams.startDate, end: apiParams.endDate }],
 		() => GetRevenueApi(apiParams),
 	)
 
@@ -22,6 +22,7 @@ const useGetRevenue = (apiParams: GetExpenseApiParams) => {
 		isLoading,
 		isError: Boolean(error),
 		error,
+		mutate,
 	}
 }
 

@@ -2,8 +2,8 @@ import GetExpenseApi, { GetExpenseApiParams } from '@/api/getExpenseApi'
 import useSWR from 'swr'
 
 const useGetExpense = (apiParams: GetExpenseApiParams) => {
-	const { data, error, isLoading } = useSWR(
-		'http://localhost:3010/expense',
+	const { data, error, isLoading, mutate } = useSWR(
+		['expense', { start: apiParams.startDate, end: apiParams.endDate }],
 		() => GetExpenseApi(apiParams),
 	)
 
@@ -21,6 +21,7 @@ const useGetExpense = (apiParams: GetExpenseApiParams) => {
 		isLoading,
 		isError: Boolean(error),
 		error,
+		mutate,
 	}
 }
 

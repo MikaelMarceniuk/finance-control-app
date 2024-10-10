@@ -3,6 +3,19 @@
 import axiosInstance from '@/lib/axios'
 import { add } from 'date-fns'
 
+type apiResponse = {
+	id: string
+	description: string
+	amount: number
+	date: Date
+	category: {
+		id: number
+		label: string
+	}
+	installmentAmout: number
+	installment: number
+}
+
 type AddExpenseApiParams = {
 	description: string
 	amount: number
@@ -16,7 +29,7 @@ type AddExpenseApiParams = {
 
 type AddExpenseApiSuccessResponse = {
 	isSuccess: true
-	message: undefined
+	data: apiResponse[]
 }
 
 type AddExpenseApiErrorResponse = {
@@ -32,30 +45,34 @@ const AddExpenseApi = async (
 	body: AddExpenseApiParams,
 ): Promise<AddRevenueResponse> => {
 	const { installmentAmout, date } = body
-	const reqResponses = []
+	const reqResponses: apiResponse[] = []
 
 	for (let i = 0; i < installmentAmout; i++) {
 		try {
-			await axiosInstance.post('/expense', {
+			const apiResp = await axiosInstance.post<apiResponse>('/expense', {
 				...body,
 				amount: body.amount / installmentAmout,
 				installment: i + 1,
 				date: add(date, { months: i }),
 			})
 
-			reqResponses.push(200)
+			reqResponses.push(apiResp.data)
 		} catch (e) {
 			console.log('Error creating revenue: ', e)
-			reqResponses.push(500)
+		}
+	}
+
+	if (reqResponses.length == installmentAmout) {
+		return {
+			isSuccess: true,
+			data: reqResponses,
 		}
 	}
 
 	return {
-		isSuccess: reqResponses.every((p) => p == 200),
-		message: reqResponses.some((p) => p == 200)
-			? undefined
-			: 'Failed to add expense. Try again later',
-	} as AddRevenueResponse
+		isSuccess: false,
+		message: 'Failed to add expense. Try again later',
+	}
 }
 
 export default AddExpenseApi

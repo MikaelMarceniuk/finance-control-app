@@ -25,6 +25,8 @@ import { Textarea } from '@/components/ui/textarea'
 import AddRevenueApi from '@/api/addRevenueApi'
 import { useToast } from '@/hooks/use-toast'
 import CurrencyInput from '@/components/ui/currencyInput'
+import useGetRevenue from '@/hooks/useGetRevenue'
+import { endOfMonth, startOfMonth } from 'date-fns'
 
 const formSchema = z.object({
 	description: z.string().min(0),
@@ -36,6 +38,10 @@ type formData = z.infer<typeof formSchema>
 
 const AddRevenueDialog = () => {
 	const { toast } = useToast()
+	const { revenue, mutate } = useGetRevenue({
+		startDate: startOfMonth(new Date()),
+		endDate: endOfMonth(new Date()),
+	})
 
 	const form = useForm<formData>({
 		resolver: zodResolver(formSchema),
@@ -59,6 +65,8 @@ const AddRevenueDialog = () => {
 				title: 'Receita salva com sucesso!',
 				variant: 'success',
 			})
+
+			mutate({ isSuccess: true, data: [...revenue, apiResp.data] })
 			return
 		}
 
