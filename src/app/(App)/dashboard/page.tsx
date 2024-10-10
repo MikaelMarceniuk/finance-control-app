@@ -14,7 +14,10 @@ const DashboardPage = () => {
 			<div className="flex justify-between">
 				<h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
 				<div className="flex gap-2">
-					<Button variant={'default'} className="gap-2">
+					<Button
+						variant={'default'}
+						className="gap-2 bg-green-800 text-white hover:bg-green-800/90"
+					>
 						<CirclePlus />
 						Receita
 					</Button>
