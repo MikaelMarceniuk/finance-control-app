@@ -12,7 +12,7 @@ const TotalRevenueCard = () => {
 	})
 
 	return (
-		<Card className="w-full max-w-96">
+		<Card className="h-fit w-full max-w-96">
 			<CardHeader>
 				<CardTitle>Receita total (mês)</CardTitle>
 			</CardHeader>
@@ -20,9 +20,6 @@ const TotalRevenueCard = () => {
 				<span className="text-3xl font-bold">
 					{moneyFormatter.format(totalRevenue / 100)}
 				</span>
-				<p>
-					<span className="text-green-600">+40%</span> em relacao ao mes passado
-				</p>
 			</CardContent>
 		</Card>
 	)

@@ -18,7 +18,7 @@ const CurrentBalanceCard = () => {
 	const currentBalance = totalRevenue - totalExpense
 
 	return (
-		<Card className="w-full max-w-96">
+		<Card className="h-fit w-full max-w-96">
 			<CardHeader>
 				<CardTitle>Saldo Atual (mês)</CardTitle>
 			</CardHeader>
@@ -26,9 +26,6 @@ const CurrentBalanceCard = () => {
 				<span className="text-3xl font-bold">
 					{moneyFormatter.format(currentBalance / 100)}
 				</span>
-				<p>
-					<span className="text-red-600">-60%</span> em relacao ao mes passado
-				</p>
 			</CardContent>
 		</Card>
 	)
