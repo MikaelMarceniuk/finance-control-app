@@ -9,8 +9,8 @@ type ApiResponse = {
 	amount: number
 	date: string
 	category: {
-		id: number
-		label: string
+		id: string
+		name: string
 	}
 	installmentAmout: number
 	installment: number
