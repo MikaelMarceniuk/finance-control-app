@@ -4,6 +4,7 @@ import * as React from 'react'
 import * as RechartsPrimitive from 'recharts'
 
 import { cn } from '@/lib/utils'
+import moneyFormatter from '@/lib/moneyFormatter'
 
 // Format: { THEME_NAME: CSS_SELECTOR }
 const THEMES = { light: '', dark: '.dark' } as const
@@ -111,6 +112,7 @@ const ChartTooltipContent = React.forwardRef<
 			indicator?: 'line' | 'dot' | 'dashed'
 			nameKey?: string
 			labelKey?: string
+			formatValueToCurrency?: boolean
 		}
 >(
 	(
@@ -128,6 +130,7 @@ const ChartTooltipContent = React.forwardRef<
 			color,
 			nameKey,
 			labelKey,
+			formatValueToCurrency = false,
 		},
 		ref,
 	) => {
@@ -239,8 +242,10 @@ const ChartTooltipContent = React.forwardRef<
 												</span>
 											</div>
 											{item.value && (
-												<span className="font-mono font-medium tabular-nums text-foreground">
-													{item.value.toLocaleString()}
+												<span className="ml-2 font-mono font-medium tabular-nums text-foreground">
+													{formatValueToCurrency
+														? moneyFormatter.format(Number(item.value))
+														: item.value.toLocaleString()}
 												</span>
 											)}
 										</div>

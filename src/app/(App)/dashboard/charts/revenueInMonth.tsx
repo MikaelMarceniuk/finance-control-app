@@ -9,34 +9,77 @@ import {
 	ChartTooltip,
 	ChartTooltipContent,
 } from '@/components/ui/chart'
-
-export const description = 'A multiple line chart'
-
-const chartData = [
-	{ month: 'January', revenue: 186, expenses: 80 },
-	{ month: 'February', revenue: 305, expenses: 200 },
-	{ month: 'March', revenue: 237, expenses: 120 },
-	{ month: 'April', revenue: 73, expenses: 190 },
-	{ month: 'May', revenue: 209, expenses: 130 },
-	{ month: 'June', revenue: 214, expenses: 140 },
-]
+import useGetRevenue from '@/hooks/useGetRevenue'
+import useGetExpense from '@/hooks/useGetExpense'
+import {
+	eachMonthOfInterval,
+	endOfMonth,
+	endOfYear,
+	format,
+	isWithinInterval,
+	startOfMonth,
+	startOfYear,
+} from 'date-fns'
+import { ptBR } from 'date-fns/locale'
 
 const chartConfig = {
 	revenue: {
-		label: 'Revenue',
+		label: 'Receitas',
 		color: 'hsl(var(--chart-1))',
 	},
 	expenses: {
-		label: 'Expenses',
+		label: 'Despesas',
 		color: 'hsl(var(--chart-2))',
 	},
 } satisfies ChartConfig
 
+const dateParams = {
+	startDate: startOfYear(new Date()),
+	endDate: endOfYear(new Date()),
+}
+
 const RevenueInMonth = () => {
+	const { revenue } = useGetRevenue(dateParams)
+	const { expenses } = useGetExpense(dateParams)
+
+	const getMonthName = (date: Date) => format(date, 'MMMM', { locale: ptBR })
+
+	const chartData = eachMonthOfInterval({
+		start: dateParams.startDate,
+		end: dateParams.endDate,
+	}).map((date) => {
+		const monthStart = startOfMonth(date)
+		const monthEnd = endOfMonth(date)
+
+		const revenuesInMonth = revenue
+			.filter((r) =>
+				isWithinInterval(new Date(r.date), {
+					start: monthStart,
+					end: monthEnd,
+				}),
+			)
+			.reduce((acc, currentVal) => acc + currentVal.amount, 0)
+
+		const expensesInMonth = expenses
+			.filter((r) =>
+				isWithinInterval(new Date(r.date), {
+					start: monthStart,
+					end: monthEnd,
+				}),
+			)
+			.reduce((acc, currentVal) => acc + currentVal.amount, 0)
+
+		return {
+			month: getMonthName(date),
+			revenue: revenuesInMonth / 100,
+			expenses: expensesInMonth / 100,
+		}
+	})
+
 	return (
 		<Card className="col-span-4">
 			<CardHeader>
-				<CardTitle>Receitas e Despesas no periodo (semana)</CardTitle>
+				<CardTitle>Receitas e Despesas no periodo (mes)</CardTitle>
 			</CardHeader>
 			<CardContent>
 				<ChartContainer config={chartConfig}>
@@ -56,7 +99,10 @@ const RevenueInMonth = () => {
 							tickMargin={8}
 							tickFormatter={(value) => value.slice(0, 3)}
 						/>
-						<ChartTooltip cursor={false} content={<ChartTooltipContent />} />
+						<ChartTooltip
+							cursor={false}
+							content={<ChartTooltipContent formatValueToCurrency />}
+						/>
 						<Line
 							dataKey="revenue"
 							type="monotone"
