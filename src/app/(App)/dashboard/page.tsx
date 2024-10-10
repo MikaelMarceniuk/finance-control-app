@@ -6,8 +6,7 @@ import TotalRevenueCard from './cards/totalRevenue'
 import RevenueInMonth from './charts/revenueInMonth'
 import ExpensesInMonthChart from './charts/expensesInMonth'
 import AddRevenueDialog from './dialogs/addRevenue'
-import { Button } from '@/components/ui/button'
-import { CircleMinus } from 'lucide-react'
+import AddExpenseDialog from './dialogs/addExpense'
 
 const DashboardPage = () => {
 	return (
@@ -16,10 +15,7 @@ const DashboardPage = () => {
 				<h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
 				<div className="flex gap-2">
 					<AddRevenueDialog />
-					<Button variant={'destructive'} className="gap-2">
-						<CircleMinus />
-						Despesa
-					</Button>
+					<AddExpenseDialog />
 				</div>
 			</div>
 
