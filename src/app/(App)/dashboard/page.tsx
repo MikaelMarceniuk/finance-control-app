@@ -5,8 +5,9 @@ import TotalExpensesCard from './cards/totalExpenses'
 import TotalRevenueCard from './cards/totalRevenue'
 import RevenueInMonth from './charts/revenueInMonth'
 import ExpensesInMonthChart from './charts/expensesInMonth'
+import AddRevenueDialog from './dialogs/addRevenue'
 import { Button } from '@/components/ui/button'
-import { CircleMinus, CirclePlus } from 'lucide-react'
+import { CircleMinus } from 'lucide-react'
 
 const DashboardPage = () => {
 	return (
@@ -14,13 +15,7 @@ const DashboardPage = () => {
 			<div className="flex justify-between">
 				<h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
 				<div className="flex gap-2">
-					<Button
-						variant={'default'}
-						className="gap-2 bg-green-800 text-white hover:bg-green-800/90"
-					>
-						<CirclePlus />
-						Receita
-					</Button>
+					<AddRevenueDialog />
 					<Button variant={'destructive'} className="gap-2">
 						<CircleMinus />
 						Despesa

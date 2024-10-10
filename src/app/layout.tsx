@@ -3,6 +3,7 @@ import localFont from 'next/font/local'
 import './globals.css'
 import ThemeProvider from '@/components/providers/themeProvider'
 import Navbar from '@/components/navbar'
+import { Toaster } from '@/components/ui/toaster'
 
 const geistSans = localFont({
 	src: './fonts/GeistVF.woff',
@@ -38,6 +39,7 @@ const RootLayout: React.FC<RootLayoutProps> = ({ children }) => {
 				>
 					<Navbar />
 					{children}
+					<Toaster />
 				</ThemeProvider>
 			</body>
 		</html>
