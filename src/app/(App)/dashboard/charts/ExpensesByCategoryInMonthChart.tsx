@@ -59,7 +59,7 @@ const ExpensesByCategoryInMonthChart = () => {
 	return (
 		<Card className="col-span-4">
 			<CardHeader>
-				<CardTitle>Despesas por categoria (mes)</CardTitle>
+				<CardTitle>Despesas por categoria (mês)</CardTitle>
 			</CardHeader>
 			<CardContent>
 				<ChartContainer config={chartConfig}>

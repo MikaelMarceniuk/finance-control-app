@@ -79,7 +79,7 @@ const RevenueAndExpensesInMonthChart = () => {
 	return (
 		<Card className="col-span-4">
 			<CardHeader>
-				<CardTitle>Receitas e Despesas no periodo (mes)</CardTitle>
+				<CardTitle>Receitas e Despesas no periodo (mês)</CardTitle>
 			</CardHeader>
 			<CardContent>
 				<ChartContainer config={chartConfig}>
