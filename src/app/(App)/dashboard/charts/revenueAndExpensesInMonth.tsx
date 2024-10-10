@@ -38,7 +38,7 @@ const dateParams = {
 	endDate: endOfYear(new Date()),
 }
 
-const RevenueInMonth = () => {
+const RevenueAndExpensesInMonthChart = () => {
 	const { revenue } = useGetRevenue(dateParams)
 	const { expenses } = useGetExpense(dateParams)
 
@@ -124,4 +124,4 @@ const RevenueInMonth = () => {
 	)
 }
 
-export default RevenueInMonth
+export default RevenueAndExpensesInMonthChart

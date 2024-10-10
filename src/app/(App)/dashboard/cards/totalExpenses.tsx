@@ -1,3 +1,5 @@
+'use client'
+
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import useGetExpense from '@/hooks/useGetExpense'
 import moneyFormatter from '@/lib/moneyFormatter'

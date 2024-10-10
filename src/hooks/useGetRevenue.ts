@@ -1,3 +1,5 @@
+'use client'
+
 import { GetExpenseApiParams } from '@/api/getExpenseApi'
 import GetRevenueApi from '@/api/getRevenueApi'
 import useSWR from 'swr'

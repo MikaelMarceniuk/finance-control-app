@@ -1,3 +1,5 @@
+'use client'
+
 import GetExpenseApi, { GetExpenseApiParams } from '@/api/getExpenseApi'
 import useSWR from 'swr'
 

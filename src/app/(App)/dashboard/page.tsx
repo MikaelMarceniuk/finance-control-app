@@ -1,9 +1,7 @@
-'use client'
-
 import CurrentBalanceCard from './cards/currentBalance'
 import TotalExpensesCard from './cards/totalExpenses'
 import TotalRevenueCard from './cards/totalRevenue'
-import RevenueInMonth from './charts/revenueInMonth'
+import RevenueAndExpensesInMonthChart from './charts/revenueAndExpensesInMonth'
 import ExpensesInMonthChart from './charts/expensesInMonth'
 import AddRevenueDialog from './dialogs/addRevenue'
 import AddExpenseDialog from './dialogs/addExpense'
@@ -26,7 +24,7 @@ const DashboardPage = () => {
 			</div>
 
 			<div className="grid grid-cols-8 gap-4">
-				<RevenueInMonth />
+				<RevenueAndExpensesInMonthChart />
 				<ExpensesInMonthChart />
 			</div>
 		</div>
