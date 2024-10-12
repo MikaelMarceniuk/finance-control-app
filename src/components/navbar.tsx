@@ -35,13 +35,15 @@ const Navbar = () => {
 					>
 						Metas
 					</Button>
-					<Button
-						variant="link"
-						className="text-gray-500 data-[current=true]:text-foreground"
-						data-current={pathname == '/reports'}
-					>
-						Relatórios
-					</Button>
+					<Link href="/reports">
+						<Button
+							variant="link"
+							className="text-gray-500 data-[current=true]:text-foreground"
+							data-current={pathname == '/reports'}
+						>
+							Relatórios
+						</Button>
+					</Link>
 				</div>
 
 				<div className="flex gap-2">
