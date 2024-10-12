@@ -1,16 +1,15 @@
 'use client'
 
-import GetCategoryApi from '@/api/getCategoryApi'
+import GetCategoryApi, { GetGategoryApiParams } from '@/api/getCategoryApi'
 import useSWR from 'swr'
 
-const useGetCategory = () => {
-	const { data, error, isLoading, mutate } = useSWR(
-		['category'],
-		GetCategoryApi,
+const useGetCategory = ({ type }: GetGategoryApiParams) => {
+	const { data, error, isLoading, mutate } = useSWR(['category', 'type'], () =>
+		GetCategoryApi({ type }),
 	)
 
 	return {
-		categories: data?.isSuccess ? data.data : [],
+		categories: data || [],
 		isLoading,
 		isError: Boolean(error),
 		error,

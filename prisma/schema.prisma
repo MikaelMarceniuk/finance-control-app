@@ -1,0 +1,47 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Transaction {
+  id           String           @id @default(uuid())
+  description  String
+  amount       Int
+  type         ETransactionType
+  date         DateTime
+  createAt     DateTime         @default(now()) @map("create_at")
+  categoryId   String           @map("category_id")
+  category     Category         @relation(fields: [categoryId], references: [id], onDelete: NoAction)
+  Installments Installments[]
+
+  @@map("transaction")
+}
+
+model Category {
+  id          String           @id @default(uuid())
+  name        String
+  type        ETransactionType
+  Transaction Transaction[]
+
+  @@map("category")
+}
+
+model Installments {
+  id            String      @id @default(uuid())
+  number        Int
+  amount        Int
+  dueDate       DateTime    @map("due_date")
+  transactionId String      @map("transaction_id")
+  transaction   Transaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+
+  @@map("installments")
+}
+
+enum ETransactionType {
+  revenue
+  expense
+}

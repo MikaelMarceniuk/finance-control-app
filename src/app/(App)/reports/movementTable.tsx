@@ -57,9 +57,9 @@ const formSchema = z.object({
 type formType = z.infer<typeof formSchema>
 
 const MovementTable: React.FC = () => {
-	const { revenue } = useGetRevenue(dateParams)
-	const { expenses } = useGetExpense(dateParams)
-	const { categories } = useGetCategory()
+	// const { revenue } = useGetRevenue(dateParams)
+	// const { expenses } = useGetExpense(dateParams)
+	// const { categories } = useGetCategory()
 
 	const form = useForm<formType>({
 		resolver: zodResolver(formSchema),

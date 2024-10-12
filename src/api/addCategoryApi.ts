@@ -1,48 +1,12 @@
 'use server'
 
-import axiosInstance from '@/lib/axios'
-
-type apiResponse = {
-	id: string
-	name: string
-}
-
-type AddCategoryApiParams = {
-	name: string
-}
-
-type AddCategoryApiSuccessResponse = {
-	isSuccess: true
-	data: apiResponse
-}
-
-type AddCategoryApiErrorResponse = {
-	isSuccess: false
-	message: string
-}
-
-type AddCategoryApiResponse =
-	| AddCategoryApiSuccessResponse
-	| AddCategoryApiErrorResponse
+import prisma from '@/lib/prisma'
+import { Category, Prisma } from '@prisma/client'
 
 const AddCategoryApi = async (
-	body: AddCategoryApiParams,
-): Promise<AddCategoryApiResponse> => {
-	try {
-		const apiResp = await axiosInstance.post<apiResponse>('/category', body)
-
-		return {
-			isSuccess: true,
-			data: apiResp.data,
-		}
-	} catch (e) {
-		console.log('Error creating revenue: ', e)
-
-		return {
-			isSuccess: false,
-			message: 'Failed to create category.',
-		}
-	}
+	data: Prisma.CategoryCreateInput,
+): Promise<Category> => {
+	return await prisma.category.create({ data })
 }
 
 export default AddCategoryApi

@@ -25,74 +25,57 @@ import { Textarea } from '@/components/ui/textarea'
 import { useToast } from '@/hooks/use-toast'
 import CurrencyInput from '@/components/ui/currencyInput'
 import { Input } from '@/components/ui/input'
-import AddExpenseApi from '@/api/addExpenseApi'
-import useGetExpense from '@/hooks/useGetExpense'
-import { endOfMonth, isWithinInterval, startOfMonth } from 'date-fns'
 import CategoryComboboxInput from '@/components/ui/categoryComboboxInput'
+import { Checkbox } from '@/components/ui/checkbox'
+import AddTransactionApi from '@/api/addTransactionApi'
 
 const formSchema = z.object({
 	description: z.string().min(0),
 	amount: z.string(),
+	type: z.enum(['revenue', 'expense']),
 	date: z.date(),
-	category: z.object({
-		id: z.string(),
-		name: z.string(),
-	}),
-	installmentAmout: z.coerce.number(),
+	category: z.string(),
+	hasInstallment: z.boolean(),
+	installmentAmount: z.coerce.number(),
 })
 
 type formData = z.infer<typeof formSchema>
 
 const AddExpenseDialog = () => {
 	const { toast } = useToast()
-	const { expenses, mutate } = useGetExpense({
-		startDate: startOfMonth(new Date()),
-		endDate: endOfMonth(new Date()),
-	})
 
 	const form = useForm<formData>({
 		resolver: zodResolver(formSchema),
 		defaultValues: {
 			description: '',
 			amount: 'R$ 0,00',
+			type: 'expense',
 			date: new Date(),
 			category: undefined,
-			installmentAmout: 1,
+			hasInstallment: false,
+			installmentAmount: 1,
 		},
 	})
 
+	const hasInstallment = form.watch('hasInstallment')
+
 	const onSubmit = async (data: formData) => {
-		const formatedData = {
-			...data,
-			amount: Number(data.amount.replace(/\D/g, '')),
-		}
+		await AddTransactionApi({
+			transactionData: {
+				description: data.description,
+				amount: Number(data.amount.replace(/\D/g, '')),
+				type: 'expense',
+				date: data.date,
+				categoryId: data.category,
+			},
+			hasInstallment: data.hasInstallment,
+			installmentAmount: data.installmentAmount,
+		})
 
-		const apiResp = await AddExpenseApi(formatedData)
-		if (apiResp.isSuccess) {
-			form.reset()
-			toast({
-				title: 'Despesa salva com sucesso!',
-				variant: 'success',
-			})
-
-			const currentMonthExpense = apiResp.data.find((p) =>
-				isWithinInterval(new Date(p.date), {
-					start: startOfMonth(new Date()),
-					end: endOfMonth(new Date()),
-				}),
-			)
-			if (currentMonthExpense) {
-				mutate({
-					isSuccess: true,
-					data: [...expenses, currentMonthExpense],
-				})
-			}
-			return
-		}
-
+		form.reset()
 		toast({
-			title: 'Erro ao salvar despesa. Tente novamente mais tarde.',
-			variant: 'destructive',
+			title: 'Despesa salva com sucesso!',
+			variant: 'success',
 		})
 	}
 
@@ -150,38 +133,23 @@ const AddExpenseDialog = () => {
 							/>
 						</div>
 
-						<div className="grid grid-cols-2 gap-4">
-							<FormField
-								control={form.control}
-								name="category"
-								render={({ field }) => (
-									<FormItem>
-										<FormLabel>Categoria</FormLabel>
-										<FormControl>
-											<CategoryComboboxInput
-												value={field.value}
-												handleOnChange={field.onChange}
-											/>
-										</FormControl>
-										<FormMessage />
-									</FormItem>
-								)}
-							/>
-
-							<FormField
-								control={form.control}
-								name="installmentAmout"
-								render={({ field }) => (
-									<FormItem>
-										<FormLabel>Quantidade de parcelas</FormLabel>
-										<FormControl>
-											<Input {...field} type="number" step={1} min={1} />
-										</FormControl>
-										<FormMessage />
-									</FormItem>
-								)}
-							/>
-						</div>
+						<FormField
+							control={form.control}
+							name="category"
+							render={({ field }) => (
+								<FormItem className="flex flex-col">
+									<FormLabel>Categoria</FormLabel>
+									<FormControl>
+										<CategoryComboboxInput
+											type="expense"
+											value={field.value}
+											handleOnChange={field.onChange}
+										/>
+									</FormControl>
+									<FormMessage />
+								</FormItem>
+							)}
+						/>
 
 						<FormField
 							control={form.control}
@@ -196,6 +164,42 @@ const AddExpenseDialog = () => {
 								</FormItem>
 							)}
 						/>
+
+						<FormField
+							control={form.control}
+							name="hasInstallment"
+							render={({ field }) => (
+								<FormItem>
+									<div className="items-top flex space-x-2">
+										<FormControl>
+											<Checkbox
+												checked={field.value}
+												onCheckedChange={field.onChange}
+											/>
+										</FormControl>
+										<label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+											Despesa foi parcelada?
+										</label>
+									</div>
+								</FormItem>
+							)}
+						/>
+
+						{hasInstallment && (
+							<FormField
+								control={form.control}
+								name="installmentAmount"
+								render={({ field }) => (
+									<FormItem>
+										<FormLabel>Quantidade de parcelas</FormLabel>
+										<FormControl>
+											<Input {...field} type="number" step={1} min={1} />
+										</FormControl>
+										<FormMessage />
+									</FormItem>
+								)}
+							/>
+						)}
 
 						<Button type="submit">Adicionar</Button>
 					</form>

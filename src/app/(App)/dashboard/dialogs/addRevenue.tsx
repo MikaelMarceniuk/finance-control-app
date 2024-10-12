@@ -22,57 +22,54 @@ import {
 } from '@/components/ui/form'
 import DatePicker from '@/components/ui/datePicker'
 import { Textarea } from '@/components/ui/textarea'
-import AddRevenueApi from '@/api/addRevenueApi'
 import { useToast } from '@/hooks/use-toast'
 import CurrencyInput from '@/components/ui/currencyInput'
-import useGetRevenue from '@/hooks/useGetRevenue'
-import { endOfMonth, startOfMonth } from 'date-fns'
+import CategoryComboboxInput from '@/components/ui/categoryComboboxInput'
+import AddTransactionApi from '@/api/addTransactionApi'
 
 const formSchema = z.object({
 	description: z.string().min(0),
 	amount: z.string(),
+	type: z.enum(['revenue', 'expense']),
 	date: z.date(),
+	category: z.string(),
+	hasInstallment: z.boolean(),
 })
 
 type formData = z.infer<typeof formSchema>
 
 const AddRevenueDialog = () => {
 	const { toast } = useToast()
-	const { revenue, mutate } = useGetRevenue({
-		startDate: startOfMonth(new Date()),
-		endDate: endOfMonth(new Date()),
-	})
 
 	const form = useForm<formData>({
 		resolver: zodResolver(formSchema),
 		defaultValues: {
 			description: '',
 			amount: 'R$ 0,00',
+			type: 'revenue',
 			date: new Date(),
+			category: undefined,
+			hasInstallment: false,
 		},
 	})
 
 	const onSubmit = async (data: formData) => {
-		const formatedData = {
-			...data,
-			amount: Number(data.amount.replace(/\D/g, '')),
-		}
+		await AddTransactionApi({
+			transactionData: {
+				description: data.description,
+				amount: Number(data.amount.replace(/\D/g, '')),
+				type: 'revenue',
+				date: data.date,
+				categoryId: data.category,
+			},
+			hasInstallment: data.hasInstallment,
+			installmentAmount: 0,
+		})
 
-		const apiResp = await AddRevenueApi(formatedData)
-		if (apiResp.isSuccess) {
-			form.reset()
-			toast({
-				title: 'Receita salva com sucesso!',
-				variant: 'success',
-			})
-
-			mutate({ isSuccess: true, data: [...revenue, apiResp.data] })
-			return
-		}
-
+		form.reset()
 		toast({
-			title: 'Erro ao salvar receita. Tente novamente mais tarde.',
-			variant: 'destructive',
+			title: 'Receita salva com sucesso!',
+			variant: 'success',
 		})
 	}
 
@@ -132,6 +129,24 @@ const AddRevenueDialog = () => {
 								)}
 							/>
 						</div>
+
+						<FormField
+							control={form.control}
+							name="category"
+							render={({ field }) => (
+								<FormItem className="flex flex-col">
+									<FormLabel>Categoria</FormLabel>
+									<FormControl>
+										<CategoryComboboxInput
+											type="revenue"
+											value={field.value}
+											handleOnChange={field.onChange}
+										/>
+									</FormControl>
+									<FormMessage />
+								</FormItem>
+							)}
+						/>
 
 						<FormField
 							control={form.control}

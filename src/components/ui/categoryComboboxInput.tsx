@@ -21,48 +21,44 @@ import {
 import AddCategoryApi from '@/api/addCategoryApi'
 import useGetCategory from '@/hooks/useGetCategory'
 import { useToast } from '@/hooks/use-toast'
-
-type ComboboxValue = {
-	id: string
-	name: string
-}
+import { ETransactionType } from '@prisma/client'
 
 type CategoryComboboxInput = {
-	value: ComboboxValue
-	handleOnChange: (data: { id: string; name: string } | undefined) => void
+	type: ETransactionType
+	value: string
+	handleOnChange: (data: string | undefined) => void
 }
 
 const CategoryComboboxInput: React.FC<CategoryComboboxInput> = ({
+	type,
 	value,
 	handleOnChange,
 }) => {
 	const [open, setOpen] = React.useState(false)
 	const [searchValue, setSearchValue] = React.useState('')
-	const { categories, mutate } = useGetCategory()
+	const { categories, mutate } = useGetCategory({ type })
 	const { toast } = useToast()
 
 	const handleCreateNewCategory = async () => {
-		const apiResp = await AddCategoryApi({ name: searchValue })
-		if (apiResp.isSuccess) {
-			const { data: newCategory } = apiResp
+		try {
+			const newCategory = await AddCategoryApi({ type, name: searchValue })
 
-			mutate({ isSuccess: true, data: [...categories, newCategory] })
+			mutate([...categories, newCategory])
 			setSearchValue('')
-			handleOnSelect(newCategory)(newCategory.id)
-			return
+			handleOnSelect(newCategory.id)(newCategory.id)
+		} catch (e) {
+			console.log('E: ', e)
+			toast({
+				title: 'Erro ao criar categoria.',
+				variant: 'destructive',
+			})
 		}
-
-		toast({
-			title: 'Erro ao criar categoria.',
-			variant: 'destructive',
-		})
 	}
 
-	const handleOnSelect =
-		(category: ComboboxValue) => (selectedValue: string) => {
-			handleOnChange(selectedValue == value?.id ? undefined : category)
-			setOpen(false)
-		}
+	const handleOnSelect = (categoryId: string) => (selectedValue: string) => {
+		handleOnChange(selectedValue == value ? undefined : categoryId)
+		setOpen(false)
+	}
 
 	return (
 		<Popover open={open} onOpenChange={setOpen}>
@@ -71,38 +67,42 @@ const CategoryComboboxInput: React.FC<CategoryComboboxInput> = ({
 					variant="outline"
 					role="combobox"
 					aria-expanded={open}
-					className="w-[200px] justify-between"
+					className="justify-between"
 				>
 					{value
-						? categories.find((c) => c.id === value.id)?.name
+						? categories.find((c) => c.id === value)?.name
 						: 'Selecione uma categoria'}
 					<ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
 				</Button>
 			</PopoverTrigger>
-			<PopoverContent className="w-[200px] p-0">
+			<PopoverContent className="p-0">
 				<Command>
 					<CommandInput
 						placeholder="Procurar..."
 						value={searchValue}
-						onInput={(e) => setSearchValue(e.target.value)}
+						onInput={(e) => setSearchValue(e.currentTarget.value)}
 					/>
 					<CommandList>
 						<CommandEmpty>
-							<Button variant="secondary" onClick={handleCreateNewCategory}>
-								Criar nova categoria
-							</Button>
+							{searchValue == '' ? (
+								'Nenhuma categoria encontrada.'
+							) : (
+								<Button variant="secondary" onClick={handleCreateNewCategory}>
+									Criar nova categoria
+								</Button>
+							)}
 						</CommandEmpty>
 						<CommandGroup>
 							{categories.map((opt) => (
 								<CommandItem
 									key={opt.id}
 									value={opt.id.toString()}
-									onSelect={handleOnSelect(opt)}
+									onSelect={handleOnSelect(opt.id)}
 								>
 									<Check
 										className={cn(
 											'mr-2 h-4 w-4',
-											value === opt.id ? 'opacity-100' : 'opacity-0',
+											value == opt.id ? 'opacity-100' : 'opacity-0',
 										)}
 									/>
 									{opt.name}

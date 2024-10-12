@@ -9,8 +9,6 @@ import {
 	ChartTooltip,
 	ChartTooltipContent,
 } from '@/components/ui/chart'
-import useGetRevenue from '@/hooks/useGetRevenue'
-import useGetExpense from '@/hooks/useGetExpense'
 import {
 	eachMonthOfInterval,
 	endOfMonth,
@@ -21,6 +19,7 @@ import {
 	startOfYear,
 } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
+import useGetTransactions from '@/hooks/useGetTransactions'
 
 const chartConfig = {
 	revenue: {
@@ -39,8 +38,7 @@ const dateParams = {
 }
 
 const RevenueAndExpensesInMonthChart = () => {
-	const { revenue } = useGetRevenue(dateParams)
-	const { expenses } = useGetExpense(dateParams)
+	const { transactions } = useGetTransactions(dateParams)
 
 	const getMonthName = (date: Date) => format(date, 'MMMM', { locale: ptBR })
 
@@ -48,26 +46,40 @@ const RevenueAndExpensesInMonthChart = () => {
 		start: dateParams.startDate,
 		end: dateParams.endDate,
 	}).map((date) => {
-		const monthStart = startOfMonth(date)
-		const monthEnd = endOfMonth(date)
+		const intervalValues = {
+			start: startOfMonth(date),
+			end: endOfMonth(date),
+		}
 
-		const revenuesInMonth = revenue
-			.filter((r) =>
-				isWithinInterval(new Date(r.date), {
-					start: monthStart,
-					end: monthEnd,
-				}),
-			)
+		const revenuesInMonth = transactions
+			.filter((t) => t.type == 'revenue')
+			.filter((r) => isWithinInterval(new Date(r.date), intervalValues))
 			.reduce((acc, currentVal) => acc + currentVal.amount, 0)
 
-		const expensesInMonth = expenses
-			.filter((r) =>
-				isWithinInterval(new Date(r.date), {
-					start: monthStart,
-					end: monthEnd,
-				}),
-			)
-			.reduce((acc, currentVal) => acc + currentVal.amount, 0)
+		const expensesInMonth = transactions
+			.filter((e) => e.type == 'expense')
+			.filter((e) => {
+				// Return all expenses that has installments
+				if (e.Installments.length > 0) {
+					return e.Installments.find((i) =>
+						isWithinInterval(new Date(i.dueDate), intervalValues),
+					)
+				}
+
+				return isWithinInterval(new Date(e.date), intervalValues)
+			})
+			.map((e) => {
+				if (e.Installments.length > 0) {
+					const monthInstallment = e.Installments.find((i) =>
+						isWithinInterval(new Date(i.dueDate), intervalValues),
+					)
+
+					return monthInstallment
+				}
+
+				return e
+			})
+			.reduce((acc, currentVal) => acc + currentVal!.amount, 0)
 
 		return {
 			month: getMonthName(date),
