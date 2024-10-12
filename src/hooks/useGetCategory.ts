@@ -3,9 +3,10 @@
 import GetCategoryApi, { GetGategoryApiParams } from '@/api/getCategoryApi'
 import useSWR from 'swr'
 
-const useGetCategory = ({ type }: GetGategoryApiParams) => {
-	const { data, error, isLoading, mutate } = useSWR(['category', 'type'], () =>
-		GetCategoryApi({ type }),
+const useGetCategory = (params: GetGategoryApiParams) => {
+	const { data, error, isLoading, mutate } = useSWR(
+		['category', { ...params }],
+		() => GetCategoryApi(params),
 	)
 
 	return {
