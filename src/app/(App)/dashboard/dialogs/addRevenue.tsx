@@ -26,6 +26,8 @@ import { useToast } from '@/hooks/use-toast'
 import CurrencyInput from '@/components/ui/currencyInput'
 import CategoryComboboxInput from '@/components/ui/categoryComboboxInput'
 import AddTransactionApi from '@/api/addTransactionApi'
+import { useSWRConfig } from 'swr'
+import { endOfMonth, endOfYear, startOfMonth, startOfYear } from 'date-fns'
 
 const formSchema = z.object({
 	description: z.string().min(0),
@@ -40,6 +42,7 @@ type formData = z.infer<typeof formSchema>
 
 const AddRevenueDialog = () => {
 	const { toast } = useToast()
+	const { mutate } = useSWRConfig()
 
 	const form = useForm<formData>({
 		resolver: zodResolver(formSchema),
@@ -65,6 +68,20 @@ const AddRevenueDialog = () => {
 			hasInstallment: data.hasInstallment,
 			installmentAmount: 0,
 		})
+
+		const monthParams = {
+			startDate: startOfMonth(new Date()),
+			endDate: endOfMonth(new Date()),
+		}
+
+		mutate(['transaction', { ...monthParams }]) // currentBalance
+		mutate(['transaction', { ...monthParams, type: 'expense' }]) // totalExpenses
+		mutate(['transaction', { ...monthParams, type: 'revenue' }]) // totalRevenue
+		mutate(['transaction', { ...monthParams, type: 'revenue' }]) // ExpensesByCategoryInMonthChart
+		mutate([
+			'transaction',
+			{ startDate: startOfYear(new Date()), endDate: endOfYear(new Date()) },
+		]) // RevenueAndExpensesInMonthChart
 
 		form.reset()
 		toast({

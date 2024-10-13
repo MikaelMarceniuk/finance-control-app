@@ -28,6 +28,8 @@ import { Input } from '@/components/ui/input'
 import CategoryComboboxInput from '@/components/ui/categoryComboboxInput'
 import { Checkbox } from '@/components/ui/checkbox'
 import AddTransactionApi from '@/api/addTransactionApi'
+import { endOfMonth, endOfYear, startOfMonth, startOfYear } from 'date-fns'
+import { useSWRConfig } from 'swr'
 
 const formSchema = z.object({
 	description: z.string().min(0),
@@ -43,6 +45,7 @@ type formData = z.infer<typeof formSchema>
 
 const AddExpenseDialog = () => {
 	const { toast } = useToast()
+	const { mutate } = useSWRConfig()
 
 	const form = useForm<formData>({
 		resolver: zodResolver(formSchema),
@@ -71,6 +74,19 @@ const AddExpenseDialog = () => {
 			hasInstallment: data.hasInstallment,
 			installmentAmount: data.installmentAmount,
 		})
+
+		const monthParams = {
+			startDate: startOfMonth(new Date()),
+			endDate: endOfMonth(new Date()),
+		}
+
+		mutate(['transaction', { ...monthParams }]) // currentBalance
+		mutate(['transaction', { ...monthParams, type: 'expense' }]) // totalExpenses
+		mutate(['transaction', { ...monthParams, type: 'revenue' }]) // ExpensesByCategoryInMonthChart
+		mutate([
+			'transaction',
+			{ startDate: startOfYear(new Date()), endDate: endOfYear(new Date()) },
+		]) // RevenueAndExpensesInMonthChart
 
 		form.reset()
 		toast({
