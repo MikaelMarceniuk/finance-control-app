@@ -4,7 +4,7 @@ import prisma from '@/lib/prisma'
 import { Category, ETransactionType } from '@prisma/client'
 
 export type GetGategoryApiParams = {
-	type: ETransactionType
+	type?: ETransactionType
 }
 
 const GetCategoryApi = async ({

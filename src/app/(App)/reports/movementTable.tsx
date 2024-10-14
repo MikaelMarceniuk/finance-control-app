@@ -19,26 +19,22 @@ import {
 	TableHeader,
 	TableRow,
 } from '@/components/ui/table'
-import useGetExpense from '@/hooks/useGetExpense'
-import useGetRevenue from '@/hooks/useGetRevenue'
 import moneyFormatter from '@/lib/moneyFormatter'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { endOfMonth, format, startOfMonth } from 'date-fns'
+import { endOfMonth, format, isWithinInterval, startOfMonth } from 'date-fns'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import Combobox from '@/components/ui/combobox'
 import useGetCategory from '@/hooks/useGetCategory'
+import useGetTransactions from '@/hooks/useGetTransactions'
+import { ETransactionType } from '@prisma/client'
 
-const tipoMovimentacaoOptions = [
-	{
-		value: 'revenue',
-		label: 'Receita',
-	},
-	{
-		value: 'expense',
-		label: 'Despesa',
-	},
-]
+const transactionTypesOptions = (
+	Object.keys(ETransactionType) as Array<keyof typeof ETransactionType>
+).map((key) => ({
+	value: key,
+	label: key.charAt(0).toUpperCase() + key.slice(1), // Capitalize
+}))
 
 const dateParams = {
 	startDate: startOfMonth(new Date()),
@@ -57,9 +53,8 @@ const formSchema = z.object({
 type formType = z.infer<typeof formSchema>
 
 const MovementTable: React.FC = () => {
-	// const { revenue } = useGetRevenue(dateParams)
-	// const { expenses } = useGetExpense(dateParams)
-	// const { categories } = useGetCategory()
+	const { transactions } = useGetTransactions(dateParams)
+	const { categories } = useGetCategory({})
 
 	const form = useForm<formType>({
 		resolver: zodResolver(formSchema),
@@ -72,10 +67,6 @@ const MovementTable: React.FC = () => {
 			category: undefined,
 		},
 	})
-
-	form.watch('type')
-
-	const tableData = [...revenue, ...expenses]
 
 	return (
 		<div className="space-y-4">
@@ -92,7 +83,7 @@ const MovementTable: React.FC = () => {
 										label="Selecionar tipo..."
 										searchLabel="Procurar..."
 										emptyLabel="Nenhum dado encontrado"
-										options={tipoMovimentacaoOptions}
+										options={transactionTypesOptions}
 										value={field.value}
 										handleOnChange={field.onChange}
 									/>
@@ -161,11 +152,13 @@ const MovementTable: React.FC = () => {
 					</TableRow>
 				</TableHeader>
 				<TableBody>
-					{tableData.map((row) => (
+					{transactions.map((row) => (
 						<TableRow key={row.id}>
 							<TableCell>
-								<Badge variant={row.category ? 'destructive' : 'revenue'}>
-									{row.category ? 'Despesa' : 'Receita'}
+								<Badge
+									variant={row.type == 'expense' ? 'destructive' : 'revenue'}
+								>
+									{row.type == 'expense' ? 'Despesa' : 'Receita'}
 								</Badge>
 							</TableCell>
 							<TableCell>
@@ -174,21 +167,20 @@ const MovementTable: React.FC = () => {
 								)}
 							</TableCell>
 							<TableCell>
-								{row.category ? (
-									<Badge variant="secondary">{row.category.name}</Badge>
-								) : (
-									<span className="text-gray-600">Sem categoria</span>
-								)}
+								<Badge variant="secondary">
+									{categories.find((c) => c.id == row.categoryId)?.name}
+								</Badge>
 							</TableCell>
 							<TableCell>{moneyFormatter.format(row.amount / 100)}</TableCell>
+							<TableCell>{row.Installments.length}</TableCell>
 							<TableCell>
-								{row.installmentAmout || (
-									<span className="text-gray-600">Sem parcela</span>
-								)}
-							</TableCell>
-							<TableCell>
-								{row.installment || (
-									<span className="text-gray-600">Sem parcela</span>
+								{row.Installments.find((i) =>
+									isWithinInterval(new Date(i.dueDate), {
+										start: dateParams.startDate,
+										end: dateParams.endDate,
+									}),
+								)?.number || (
+									<span className="text-gray-600">Sem parcelas</span>
 								)}
 							</TableCell>
 							<TableCell>{format(new Date(row.date), 'dd/MM/yyyy')}</TableCell>
