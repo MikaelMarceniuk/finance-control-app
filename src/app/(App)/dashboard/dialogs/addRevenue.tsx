@@ -35,7 +35,7 @@ const formSchema = z.object({
 	type: z.enum(['revenue', 'expense']),
 	date: z.date(),
 	category: z.string(),
-	hasInstallment: z.boolean(),
+	isInstallment: z.boolean(),
 })
 
 type formData = z.infer<typeof formSchema>
@@ -52,21 +52,18 @@ const AddRevenueDialog = () => {
 			type: 'revenue',
 			date: new Date(),
 			category: undefined,
-			hasInstallment: false,
+			isInstallment: false,
 		},
 	})
 
 	const onSubmit = async (data: formData) => {
 		await AddTransactionApi({
-			transactionData: {
-				description: data.description,
-				amount: Number(data.amount.replace(/\D/g, '')),
-				type: 'revenue',
-				date: data.date,
-				categoryId: data.category,
-			},
-			hasInstallment: data.hasInstallment,
-			installmentAmount: 0,
+			description: data.description,
+			amount: Number(data.amount.replace(/\D/g, '')),
+			type: 'revenue',
+			date: data.date,
+			categoryId: data.category,
+			isInstallment: false,
 		})
 
 		const monthParams = {

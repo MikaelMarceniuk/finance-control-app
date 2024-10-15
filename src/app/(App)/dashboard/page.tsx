@@ -1,10 +1,10 @@
-import CurrentBalanceCard from './cards/currentBalance'
-import TotalExpensesCard from './cards/totalExpenses'
-import TotalRevenueCard from './cards/totalRevenue'
-import RevenueAndExpensesInMonthChart from './charts/revenueAndExpensesInMonth'
-import ExpensesByCategoryInMonthChart from './charts/ExpensesByCategoryInMonthChart'
 import AddRevenueDialog from './dialogs/addRevenue'
 import AddExpenseDialog from './dialogs/addExpense'
+import TotalRevenueCard from './cards/totalRevenue'
+import TotalExpensesCard from './cards/totalExpenses'
+import CurrentBalanceCard from './cards/currentBalance'
+import RevenueAndExpensesInMonthChart from './charts/revenueAndExpensesInMonth'
+import ExpensesByCategoryInMonthChart from './charts/ExpensesByCategoryInMonthChart'
 
 const DashboardPage = () => {
 	return (

@@ -1,9 +1,9 @@
 'use server'
 
 import prisma from '@/lib/prisma'
-import { ETransactionType, Installments } from '@prisma/client'
+import { Category, ETransactionType } from '@prisma/client'
 
-type TransactionsWithInstallments = {
+type TransactionsWithChildrens = {
 	id: string
 	description: string
 	amount: number
@@ -11,20 +11,26 @@ type TransactionsWithInstallments = {
 	date: Date
 	createAt: Date
 	categoryId: string
-	Installments: Installments[]
+	isInstallment: boolean
+	installmentAmount: number | null
+	installmentNumber: number | null
+	parentTransactionId: string | null
+	category: Category
 }
 
 export type GetTransactionsApiParams = {
 	type?: ETransactionType
 	startDate?: Date
 	endDate?: Date
+	categoryId?: string
 }
 
 const GetTransactionsApi = async ({
 	type,
 	startDate,
 	endDate,
-}: GetTransactionsApiParams): Promise<TransactionsWithInstallments[]> => {
+	categoryId,
+}: GetTransactionsApiParams): Promise<TransactionsWithChildrens[]> => {
 	return await prisma.transaction.findMany({
 		where: {
 			type: {
@@ -34,9 +40,12 @@ const GetTransactionsApi = async ({
 				gte: startDate,
 				lte: endDate,
 			},
+			categoryId: {
+				equals: categoryId,
+			},
 		},
 		include: {
-			Installments: true,
+			category: true,
 		},
 	})
 }

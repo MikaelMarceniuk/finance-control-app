@@ -9,9 +9,10 @@ import {
 	ChartTooltip,
 	ChartTooltipContent,
 } from '@/components/ui/chart'
-import { endOfMonth, isWithinInterval, startOfMonth } from 'date-fns'
+import { endOfMonth, startOfMonth } from 'date-fns'
 import useGetCategory from '@/hooks/useGetCategory'
 import useGetTransactions from '@/hooks/useGetTransactions'
+import getTransactionsWithoutInstallments from '@/lib/getTransactionsWithoutInstallments'
 
 export const description = 'A bar chart'
 
@@ -35,22 +36,9 @@ const ExpensesByCategoryInMonthChart = () => {
 	})
 
 	const chartData = categories.map((c) => {
-		const expensesInThisCategory = transactions
-			.filter((t) => t.categoryId == c.id)
-			.map((t) => {
-				if (t.Installments.length > 0) {
-					const monthInstallment = t.Installments.find((i) =>
-						isWithinInterval(new Date(i.dueDate), {
-							start: dateParams.startDate,
-							end: dateParams.endDate,
-						}),
-					)
-
-					return monthInstallment
-				}
-
-				return t
-			})
+		const expensesInThisCategory = getTransactionsWithoutInstallments(
+			transactions.filter((t) => t.categoryId == c.id),
+		)
 
 		const amount = expensesInThisCategory.reduce(
 			(acc, expense) => acc + expense!.amount,

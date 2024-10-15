@@ -20,6 +20,7 @@ import {
 } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import useGetTransactions from '@/hooks/useGetTransactions'
+import getTransactionsWithoutInstallments from '@/lib/getTransactionsWithoutInstallments'
 
 const chartConfig = {
 	revenue: {
@@ -56,29 +57,9 @@ const RevenueAndExpensesInMonthChart = () => {
 			.filter((r) => isWithinInterval(new Date(r.date), intervalValues))
 			.reduce((acc, currentVal) => acc + currentVal.amount, 0)
 
-		const expensesInMonth = transactions
+		const expensesInMonth = getTransactionsWithoutInstallments(transactions)
 			.filter((e) => e.type == 'expense')
-			.filter((e) => {
-				// Return all expenses that has installments
-				if (e.Installments.length > 0) {
-					return e.Installments.find((i) =>
-						isWithinInterval(new Date(i.dueDate), intervalValues),
-					)
-				}
-
-				return isWithinInterval(new Date(e.date), intervalValues)
-			})
-			.map((e) => {
-				if (e.Installments.length > 0) {
-					const monthInstallment = e.Installments.find((i) =>
-						isWithinInterval(new Date(i.dueDate), intervalValues),
-					)
-
-					return monthInstallment
-				}
-
-				return e
-			})
+			.filter((e) => isWithinInterval(new Date(e.date), intervalValues))
 			.reduce((acc, currentVal) => acc + currentVal!.amount, 0)
 
 		return {

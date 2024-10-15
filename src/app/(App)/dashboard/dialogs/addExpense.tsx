@@ -37,7 +37,7 @@ const formSchema = z.object({
 	type: z.enum(['revenue', 'expense']),
 	date: z.date(),
 	category: z.string(),
-	hasInstallment: z.boolean(),
+	isInstallment: z.boolean(),
 	installmentAmount: z.coerce.number(),
 })
 
@@ -55,23 +55,21 @@ const AddExpenseDialog = () => {
 			type: 'expense',
 			date: new Date(),
 			category: undefined,
-			hasInstallment: false,
+			isInstallment: false,
 			installmentAmount: 1,
 		},
 	})
 
-	const hasInstallment = form.watch('hasInstallment')
+	const isInstallment = form.watch('isInstallment')
 
 	const onSubmit = async (data: formData) => {
 		await AddTransactionApi({
-			transactionData: {
-				description: data.description,
-				amount: Number(data.amount.replace(/\D/g, '')),
-				type: 'expense',
-				date: data.date,
-				categoryId: data.category,
-			},
-			hasInstallment: data.hasInstallment,
+			description: data.description,
+			amount: Number(data.amount.replace(/\D/g, '')),
+			type: 'expense',
+			date: data.date,
+			categoryId: data.category,
+			isInstallment: data.isInstallment,
 			installmentAmount: data.installmentAmount,
 		})
 
@@ -183,7 +181,7 @@ const AddExpenseDialog = () => {
 
 						<FormField
 							control={form.control}
-							name="hasInstallment"
+							name="isInstallment"
 							render={({ field }) => (
 								<FormItem>
 									<div className="items-top flex space-x-2">
@@ -201,7 +199,7 @@ const AddExpenseDialog = () => {
 							)}
 						/>
 
-						{hasInstallment && (
+						{isInstallment && (
 							<FormField
 								control={form.control}
 								name="installmentAmount"

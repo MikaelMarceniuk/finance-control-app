@@ -8,15 +8,19 @@ datasource db {
 }
 
 model Transaction {
-  id           String           @id @default(uuid())
-  description  String
-  amount       Int
-  type         ETransactionType
-  date         DateTime
-  createAt     DateTime         @default(now()) @map("create_at")
-  categoryId   String           @map("category_id")
-  category     Category         @relation(fields: [categoryId], references: [id], onDelete: NoAction)
-  Installments Installments[]
+  id                  String           @id @default(uuid())
+  description         String
+  amount              Int
+  type                ETransactionType
+  date                DateTime
+  createAt            DateTime         @default(now()) @map("create_at")
+  categoryId          String           @map("category_id")
+  isInstallment       Boolean
+  installmentAmount   Int?
+  installmentNumber   Int?
+  parentTransactionId String?
+
+  category Category @relation(fields: [categoryId], references: [id], onDelete: NoAction)
 
   @@map("transaction")
 }
@@ -28,17 +32,6 @@ model Category {
   Transaction Transaction[]
 
   @@map("category")
-}
-
-model Installments {
-  id            String      @id @default(uuid())
-  number        Int
-  amount        Int
-  dueDate       DateTime    @map("due_date")
-  transactionId String      @map("transaction_id")
-  transaction   Transaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
-
-  @@map("installments")
 }
 
 enum ETransactionType {

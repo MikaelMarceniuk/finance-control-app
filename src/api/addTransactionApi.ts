@@ -4,41 +4,31 @@ import prisma from '@/lib/prisma'
 import { Prisma } from '@prisma/client'
 import { addMonths } from 'date-fns'
 
-type AddTransactionApiParams = {
-	transactionData: Prisma.TransactionUncheckedCreateInput
-	hasInstallment: boolean
-	installmentAmount: number
-}
-
 type AddTransactionErrorResponse = {
 	isSuccess: false
 	message: string
 }
 
-const AddTransactionApi = async ({
-	transactionData,
-	hasInstallment,
-	installmentAmount,
-}: AddTransactionApiParams): Promise<
-	undefined | AddTransactionErrorResponse
-> => {
+const AddTransactionApi = async (
+	data: Prisma.TransactionUncheckedCreateInput,
+): Promise<undefined | AddTransactionErrorResponse> => {
 	try {
-		const newTransaction = await prisma.transaction.create({
-			data: transactionData,
-		})
+		const newTransaction = await prisma.transaction.create({ data })
 
-		if (hasInstallment) {
-			const installmentDatas: Prisma.InstallmentsCreateManyInput[] = []
+		const { isInstallment, installmentAmount } = data
+		if (isInstallment && installmentAmount && installmentAmount > 1) {
+			const installments: Prisma.TransactionUncheckedCreateInput[] = []
 			for (let i = 0; i < installmentAmount; i++) {
-				installmentDatas.push({
-					number: i + 1,
+				installments.push({
+					...data,
 					amount: newTransaction.amount / installmentAmount,
-					dueDate: addMonths(new Date(newTransaction.date), i),
-					transactionId: newTransaction.id,
+					installmentNumber: i + 1,
+					parentTransactionId: newTransaction.id,
+					date: addMonths(data.date, i),
 				})
 			}
 
-			await prisma.installments.createMany({ data: installmentDatas })
+			await prisma.transaction.createMany({ data: installments })
 		}
 	} catch (e) {
 		console.log('Error in AddTransaction: ', e)
