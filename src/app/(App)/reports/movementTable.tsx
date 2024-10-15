@@ -1,3 +1,5 @@
+// TODO Handle installments expenses
+
 'use client'
 
 import { Badge } from '@/components/ui/badge'
@@ -28,6 +30,7 @@ import Combobox from '@/components/ui/combobox'
 import useGetCategory from '@/hooks/useGetCategory'
 import useGetTransactions from '@/hooks/useGetTransactions'
 import { ETransactionType } from '@prisma/client'
+import getTransactionsWithoutInstallments from '@/lib/getTransactionsWithoutInstallments'
 
 const transactionTypesOptions = (
 	Object.keys(ETransactionType) as Array<keyof typeof ETransactionType>
@@ -36,37 +39,73 @@ const transactionTypesOptions = (
 	label: key.charAt(0).toUpperCase() + key.slice(1), // Capitalize
 }))
 
-const dateParams = {
-	startDate: startOfMonth(new Date()),
-	endDate: endOfMonth(new Date()),
-}
-
 const formSchema = z.object({
 	dateRange: z.object({
 		from: z.date(),
 		to: z.date(),
 	}),
-	type: z.string(),
-	category: z.string(),
+	type: z.enum(['expense', 'revenue']).optional(),
+	category: z.string().optional(),
 })
+
+const formDefaultValues = {
+	dateRange: {
+		from: startOfMonth(new Date()),
+		to: endOfMonth(new Date()),
+	},
+	type: undefined,
+	category: undefined,
+}
 
 type formType = z.infer<typeof formSchema>
 
 const MovementTable: React.FC = () => {
-	const { transactions } = useGetTransactions(dateParams)
-	const { categories } = useGetCategory({})
-
 	const form = useForm<formType>({
 		resolver: zodResolver(formSchema),
-		defaultValues: {
-			dateRange: {
-				from: undefined,
-				to: undefined,
-			},
-			type: undefined,
-			category: undefined,
-		},
+		defaultValues: formDefaultValues,
 	})
+
+	const typeWatcher = form.watch('type')
+	const categoryWatcher = form.watch('category')
+	const dateWatcher = form.watch('dateRange')
+
+	const { transactions } = useGetTransactions({
+		startDate: form.watch('dateRange.from'),
+		endDate: form.watch('dateRange.to'),
+		type: typeWatcher == '' ? undefined : typeWatcher,
+		categoryId: categoryWatcher == '' ? undefined : categoryWatcher,
+	})
+	const { categories } = useGetCategory({})
+
+	const intervalValues = {
+		start: dateWatcher.from,
+		end: dateWatcher.to,
+	}
+
+	const tableData = getTransactionsWithoutInstallments(transactions)
+	// .filter((e) => {
+	// 	// Return all expenses that has installments
+	// 	if (e.Installments.length > 0) {
+	// 		return e.Installments.find((i) =>
+	// 			isWithinInterval(new Date(i.dueDate), intervalValues),
+	// 		)
+	// 	}
+
+	// 	return isWithinInterval(new Date(e.date), intervalValues)
+	// })
+	// .map((e) => {
+	// 	if (e.Installments.length > 0) {
+	// 		const monthInstallment = e.Installments.find((i) =>
+	// 			isWithinInterval(new Date(i.dueDate), intervalValues),
+	// 		)
+
+	// 		return monthInstallment
+	// 	}
+
+	// 	return e
+	// })
+
+	console.log('tableData: ', tableData)
 
 	return (
 		<div className="space-y-4">
@@ -123,7 +162,7 @@ const MovementTable: React.FC = () => {
 						control={form.control}
 						name="dateRange"
 						render={({ field }) => (
-							<FormItem className="col-span-2">
+							<FormItem className="col-span-4">
 								<FormLabel>Intervalo de datas</FormLabel>
 								<FormControl>
 									<DateRangePicker
@@ -152,7 +191,7 @@ const MovementTable: React.FC = () => {
 					</TableRow>
 				</TableHeader>
 				<TableBody>
-					{transactions.map((row) => (
+					{tableData.map((row) => (
 						<TableRow key={row.id}>
 							<TableCell>
 								<Badge
@@ -171,15 +210,19 @@ const MovementTable: React.FC = () => {
 									{categories.find((c) => c.id == row.categoryId)?.name}
 								</Badge>
 							</TableCell>
-							<TableCell>{moneyFormatter.format(row.amount / 100)}</TableCell>
-							<TableCell>{row.Installments.length}</TableCell>
 							<TableCell>
-								{row.Installments.find((i) =>
-									isWithinInterval(new Date(i.dueDate), {
-										start: dateParams.startDate,
-										end: dateParams.endDate,
-									}),
-								)?.number || (
+								{row.type == 'expense' && '-'}{' '}
+								{moneyFormatter.format(row.amount / 100)}
+							</TableCell>
+							<TableCell>
+								{row.type == 'revenue'
+									? 'A vista'
+									: row.installmentAmount == 1
+										? 'A vista'
+										: row.installmentAmount}
+							</TableCell>
+							<TableCell>
+								{row.installmentNumber || (
 									<span className="text-gray-600">Sem parcelas</span>
 								)}
 							</TableCell>
