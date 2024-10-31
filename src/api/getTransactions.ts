@@ -18,11 +18,17 @@ type TransactionsWithChildrens = {
 	category: Category
 }
 
+export type TransactionsOrderBy = {
+	amount?: 'asc' | 'desc'
+	date?: 'asc' | 'desc'
+}
+
 export type GetTransactionsApiParams = {
 	type?: ETransactionType
 	startDate?: Date
 	endDate?: Date
-	categoryId?: string
+	categoryId?: string[]
+	orderBy?: TransactionsOrderBy
 }
 
 const GetTransactionsApi = async ({
@@ -30,6 +36,7 @@ const GetTransactionsApi = async ({
 	startDate,
 	endDate,
 	categoryId,
+	orderBy,
 }: GetTransactionsApiParams): Promise<TransactionsWithChildrens[]> => {
 	return await prisma.transaction.findMany({
 		where: {
@@ -41,12 +48,13 @@ const GetTransactionsApi = async ({
 				lte: endDate,
 			},
 			categoryId: {
-				equals: categoryId,
+				in: categoryId,
 			},
 		},
 		include: {
 			category: true,
 		},
+		orderBy,
 	})
 }
 

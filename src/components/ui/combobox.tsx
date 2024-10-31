@@ -24,7 +24,7 @@ type ComboboxProps = {
 	searchLabel: string
 	emptyLabel: string
 	options: { value: string; label: string }[]
-	value: string
+	value: string | undefined
 	handleOnChange: (selectedValue: string) => void
 }
 
@@ -63,7 +63,9 @@ const Combobox: React.FC<ComboboxProps> = ({
 									value={opt.value}
 									onSelect={(currentValue) => {
 										console.log('currentValue: ', currentValue)
-										handleOnChange(currentValue == value ? '' : currentValue)
+										handleOnChange(
+											currentValue == value ? undefined : currentValue,
+										)
 										setOpen(false)
 									}}
 								>
