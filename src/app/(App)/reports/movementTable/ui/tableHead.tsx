@@ -23,29 +23,27 @@ import {
 import { useState } from 'react'
 import { useTableActionProvider } from '..'
 import { cn } from '@/lib/utils'
-import { TransactionsOrderBy } from '@/api/getTransactions'
 
 type TableHeadProps = {
 	name: string
-	orderByKey?: keyof TransactionsOrderBy
+	field: string
+	width?: string
 	isVisible?: boolean
 	isSortable?: boolean
-	className?: string
 }
 
 const CustomTableHead: React.FC<TableHeadProps> = ({
 	name,
-	orderByKey,
-	className,
+	field,
+	width,
 	isVisible,
-	isSortable = false,
+	isSortable,
 }) => {
 	const { handleOnAction, values } = useTableActionProvider()
 	const [isOpen, setIsOpen] = useState(false)
 
 	const getOrderByIcon = () => {
-		console.log('getOrderByIcon.orderBy: ', orderByKey)
-		const currentOrderBy = values.orderBy?.[orderByKey]
+		const currentOrderBy = values.orderBy?.[field]
 
 		if (currentOrderBy == 'asc')
 			return <ArrowUpWideNarrow size={14} className="text-muted-foreground" />
@@ -57,7 +55,13 @@ const CustomTableHead: React.FC<TableHeadProps> = ({
 	}
 
 	if (!isSortable) {
-		return <TableHead className={className}>{name}</TableHead>
+		return (
+			<TableHead
+				className={cn(isVisible ? 'table-cell' : 'hidden', 'my-1', width)}
+			>
+				{name}
+			</TableHead>
+		)
 	}
 
 	return (
@@ -78,9 +82,7 @@ const CustomTableHead: React.FC<TableHeadProps> = ({
 						<CommandGroup>
 							<CommandItem
 								className="flex gap-2"
-								onSelect={() =>
-									handleOnAction({ action: 'asc', key: orderByKey })
-								}
+								onSelect={() => handleOnAction({ action: 'asc', key: field })}
 							>
 								<ArrowUpWideNarrow
 									size={16}
@@ -90,9 +92,7 @@ const CustomTableHead: React.FC<TableHeadProps> = ({
 							</CommandItem>
 							<CommandItem
 								className="flex gap-2"
-								onSelect={() =>
-									handleOnAction({ action: 'desc', key: orderByKey })
-								}
+								onSelect={() => handleOnAction({ action: 'desc', key: field })}
 							>
 								<ArrowDownWideNarrow
 									size={16}
@@ -107,7 +107,7 @@ const CustomTableHead: React.FC<TableHeadProps> = ({
 								className="flex gap-2"
 								onSelect={() => {
 									setIsOpen(false)
-									handleOnAction({ action: 'hide', key: orderByKey })
+									handleOnAction({ action: 'visibility', key: field })
 								}}
 							>
 								<EyeOff size={16} className="text-muted-foreground" />

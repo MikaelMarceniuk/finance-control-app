@@ -44,13 +44,68 @@ const formDefaultValues = {
 	category: [],
 }
 
+interface IColumn {
+	name: string
+	field: string
+	width?: string
+	isSortable: boolean
+}
+
+const defineTableColumns = <T extends IColumn[]>(columns: T) => columns
+
+const tableColumns = defineTableColumns([
+	{
+		name: 'Tipo',
+		field: 'type',
+		width: '6rem',
+		isSortable: false,
+	},
+	{
+		name: 'Descrição',
+		field: 'description',
+		width: '24rem',
+		isSortable: false,
+	},
+	{
+		name: 'Categoria',
+		field: 'category',
+		width: '10rem',
+		isSortable: false,
+	},
+	{
+		name: 'Valor',
+		field: 'amount',
+		width: '7rem',
+		isSortable: true,
+	},
+	{
+		name: 'Qtd de Parcelas',
+		field: 'installmentAmount',
+		width: '7rem',
+		isSortable: false,
+	},
+	{
+		name: 'Nro Parcela',
+		field: 'installmentNumber',
+		width: '7rem',
+		isSortable: false,
+	},
+	{
+		name: 'Data',
+		field: 'date',
+		isSortable: true,
+	},
+] as const)
+
+type TableColumnFields = (typeof tableColumns)[number]['field']
+
 export type movementTableFormType = z.infer<typeof formSchema>
 
-export type HeaderAction = 'asc' | 'desc' | 'hide'
+export type HeaderAction = 'asc' | 'desc' | 'visibility'
 
 export type HandleTableHeaderActionParams = {
 	action: HeaderAction
-	key: 'amount' | 'date'
+	key: TableColumnFields
 }
 
 type TableActionsType = {
@@ -69,6 +124,7 @@ type TableActionsType = {
 type TableActionProviderType = {
 	handleOnAction: (action: HandleTableHeaderActionParams) => void
 	values: TableActionsType
+	columns: IColumn[]
 }
 
 const TableActionProvider = createContext({} as TableActionProviderType)
@@ -117,11 +173,11 @@ const MovementTable: React.FC = () => {
 
 		let newTableAction: TableActionsType
 
-		if (action == 'hide') {
+		if (action == 'visibility') {
 			newTableAction = {
 				isVisible: {
 					...tableAction.isVisible,
-					[key]: false,
+					[key]: !tableAction.isVisible[key],
 				},
 				orderBy: { ...tableAction.orderBy },
 			}
@@ -142,149 +198,121 @@ const MovementTable: React.FC = () => {
 	const tableData = getTransactionsWithoutInstallments(transactions)
 
 	return (
-		<div className="space-y-4">
-			<Form {...form}>
-				<form className="grid grid-cols-12 space-x-2">
-					<TypeFilter />
-					<CategoryFilter />
-					<DateRangeFilter />
-					<VisibilityBtn />
-				</form>
-			</Form>
+		<TableActionProvider.Provider
+			value={{
+				handleOnAction: handleTableHeaderAction,
+				values: tableAction,
+				columns: tableColumns,
+			}}
+		>
+			<div className="space-y-4">
+				<Form {...form}>
+					<form className="grid grid-cols-12 space-x-2">
+						<TypeFilter />
+						<CategoryFilter />
+						<DateRangeFilter />
+						<VisibilityBtn />
+					</form>
+				</Form>
 
-			<Table>
-				<TableActionProvider.Provider
-					value={{
-						handleOnAction: handleTableHeaderAction,
-						values: tableAction,
-					}}
-				>
+				<Table>
 					<TableHeader>
 						<TableRow>
-							<CustomTableHead
-								name="Tipo"
-								isVisible={tableAction.isVisible.type}
-								className="w-24"
-							/>
-							<CustomTableHead
-								name="Descrição"
-								isVisible={tableAction.isVisible.description}
-								className="w-96"
-							/>
-							<CustomTableHead
-								name="Categoria"
-								isVisible={tableAction.isVisible.category}
-								className="w-40"
-							/>
-							<CustomTableHead
-								name="Valor"
-								orderByKey="amount"
-								isVisible={tableAction.isVisible.amount}
-								isSortable
-								className="w-28"
-							/>
-							<CustomTableHead
-								name="Qtd de parcelas"
-								isVisible={tableAction.isVisible.installmentAmount}
-								className="w-28"
-							/>
-							<CustomTableHead
-								name="Nro Parcela"
-								isVisible={tableAction.isVisible.installmentNumber}
-								className="w-28"
-							/>
-							<CustomTableHead
-								name="Data"
-								orderByKey="date"
-								isVisible={tableAction.isVisible.date}
-								isSortable
-							/>
+							{tableColumns.map((column) => (
+								<CustomTableHead
+									key={column.field}
+									isVisible={tableAction.isVisible[column.field]}
+									{...column}
+								/>
+							))}
 						</TableRow>
 					</TableHeader>
-				</TableActionProvider.Provider>
-				<TableBody>
-					{tableData.map((row) => {
-						const { isVisible } = tableAction
+					<TableBody>
+						{tableData.map((row) => {
+							const { isVisible } = tableAction
 
-						return (
-							<TableRow key={row.id} className="w-24">
-								<TableCell
-									className={cn(
-										isVisible.type ? 'table-cell' : 'hidden',
-										'w-24',
-									)}
-								>
-									<Badge
-										variant={row.type == 'expense' ? 'destructive' : 'revenue'}
+							return (
+								<TableRow key={row.id} className="w-24">
+									<TableCell
+										className={cn(
+											isVisible.type ? 'table-cell' : 'hidden',
+											'w-24',
+										)}
 									>
-										{row.type == 'expense' ? 'Despesa' : 'Receita'}
-									</Badge>
-								</TableCell>
+										<Badge
+											variant={
+												row.type == 'expense' ? 'destructive' : 'revenue'
+											}
+										>
+											{row.type == 'expense' ? 'Despesa' : 'Receita'}
+										</Badge>
+									</TableCell>
 
-								<TableCell
-									className={cn(
-										isVisible.description ? 'table-cell' : 'hidden',
-										'w-96',
-									)}
-								>
-									{row.description || (
-										<span className="text-gray-600">Sem descrição</span>
-									)}
-								</TableCell>
+									<TableCell
+										className={cn(
+											isVisible.description ? 'table-cell' : 'hidden',
+											'w-96',
+										)}
+									>
+										{row.description || (
+											<span className="text-gray-600">Sem descrição</span>
+										)}
+									</TableCell>
 
-								<TableCell
-									className={cn(
-										isVisible.category ? 'table-cell' : 'hidden',
-										'w-40',
-									)}
-								>
-									<Badge variant="secondary">
-										{categories.find((c) => c.id == row.categoryId)?.name}
-									</Badge>
-								</TableCell>
+									<TableCell
+										className={cn(
+											isVisible.category ? 'table-cell' : 'hidden',
+											'w-40',
+										)}
+									>
+										<Badge variant="secondary">
+											{categories.find((c) => c.id == row.categoryId)?.name}
+										</Badge>
+									</TableCell>
 
-								<TableCell
-									className={cn(isVisible.amount ? 'flex' : 'hidden', 'w-28')}
-								>
-									{row.type == 'expense' && '-'}{' '}
-									{moneyFormatter.format(row.amount / 100)}
-								</TableCell>
+									<TableCell
+										className={cn(isVisible.amount ? 'flex' : 'hidden', 'w-28')}
+									>
+										{row.type == 'expense' && '-'}{' '}
+										{moneyFormatter.format(row.amount / 100)}
+									</TableCell>
 
-								<TableCell
-									className={cn(
-										isVisible.installmentAmount ? 'table-cell' : 'hidden',
-										'w-28',
-									)}
-								>
-									{row.type == 'revenue'
-										? 'A vista'
-										: row.installmentAmount == 1
+									<TableCell
+										className={cn(
+											isVisible.installmentAmount ? 'table-cell' : 'hidden',
+											'w-28',
+										)}
+									>
+										{row.type == 'revenue'
 											? 'A vista'
-											: row.installmentAmount}
-								</TableCell>
+											: row.installmentAmount == 1
+												? 'A vista'
+												: row.installmentAmount}
+									</TableCell>
 
-								<TableCell
-									className={cn(
-										isVisible.installmentNumber ? 'table-cell' : 'hidden',
-										'w-28',
-									)}
-								>
-									{row.installmentNumber || (
-										<span className="text-gray-600">Sem parcelas</span>
-									)}
-								</TableCell>
+									<TableCell
+										className={cn(
+											isVisible.installmentNumber ? 'table-cell' : 'hidden',
+											'w-28',
+										)}
+									>
+										{row.installmentNumber || (
+											<span className="text-gray-600">Sem parcelas</span>
+										)}
+									</TableCell>
 
-								<TableCell
-									className={cn(isVisible.date ? 'table-cell' : 'hidden')}
-								>
-									{format(new Date(row.date), 'dd/MM/yyyy')}
-								</TableCell>
-							</TableRow>
-						)
-					})}
-				</TableBody>
-			</Table>
-		</div>
+									<TableCell
+										className={cn(isVisible.date ? 'table-cell' : 'hidden')}
+									>
+										{format(new Date(row.date), 'dd/MM/yyyy')}
+									</TableCell>
+								</TableRow>
+							)
+						})}
+					</TableBody>
+				</Table>
+			</div>
+		</TableActionProvider.Provider>
 	)
 }
 
