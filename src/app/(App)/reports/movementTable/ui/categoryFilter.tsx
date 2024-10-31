@@ -35,6 +35,7 @@ const CategoryFilter = () => {
 	const form = useFormContext<movementTableFormType>()
 
 	const dateRangeWatcher = form.getValues('dateRange')
+	const typeWatcher = form.getValues('type')
 
 	const { transactions } = useGetTransactions({
 		startDate: dateRangeWatcher.from,
@@ -55,6 +56,14 @@ const CategoryFilter = () => {
 		}
 
 		form.setValue('category', newValue)
+	}
+
+	console.log('typeWatcher: ', typeWatcher)
+
+	const getCategoriesBasedOnType = () => {
+		if (!typeWatcher) return categories
+
+		return categories.filter((c) => c.type == typeWatcher)
 	}
 
 	const handleOnReset = () => form.setValue('category', [])
@@ -96,7 +105,7 @@ const CategoryFilter = () => {
 									<CommandList>
 										<CommandEmpty>Categoria não encontrada</CommandEmpty>
 										<CommandGroup>
-											{categories.map((opt) => (
+											{getCategoriesBasedOnType().map((opt) => (
 												<CommandItem
 													key={opt.id}
 													value={opt.id}
