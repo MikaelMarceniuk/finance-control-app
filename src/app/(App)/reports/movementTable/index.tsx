@@ -1,21 +1,11 @@
 'use client'
 
 import { Badge } from '@/components/ui/badge'
-import { DateRangePicker } from '@/components/ui/dateRangePicker'
-import {
-	Form,
-	FormControl,
-	FormDescription,
-	FormField,
-	FormItem,
-	FormLabel,
-	FormMessage,
-} from '@/components/ui/form'
+import { Form } from '@/components/ui/form'
 import {
 	Table,
 	TableBody,
 	TableCell,
-	TableHead,
 	TableHeader,
 	TableRow,
 } from '@/components/ui/table'
@@ -24,25 +14,17 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { endOfDay, endOfMonth, format, startOfMonth } from 'date-fns'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
-import Combobox from '@/components/ui/combobox'
 import useGetCategory from '@/hooks/useGetCategory'
 import useGetTransactions from '@/hooks/useGetTransactions'
-import { ETransactionType } from '@prisma/client'
 import getTransactionsWithoutInstallments from '@/lib/getTransactionsWithoutInstallments'
 import { createContext, useContext, useState } from 'react'
 import { TransactionsOrderBy } from '@/api/getTransactions'
-import { Button } from '@/components/ui/button'
-import { Settings2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import CustomTableHead from './ui/tableHead'
 import CategoryFilter from './ui/categoryFilter'
-
-const transactionTypesOptions = (
-	Object.keys(ETransactionType) as Array<keyof typeof ETransactionType>
-).map((key) => ({
-	value: key,
-	label: key.charAt(0).toUpperCase() + key.slice(1), // Capitalize
-}))
+import TypeFilter from './ui/typeFilter'
+import DateRangeFilter from './ui/dateRangeFilter'
+import VisibilityBtn from './ui/visibilityBtn'
 
 const formSchema = z.object({
 	dateRange: z.object({
@@ -163,54 +145,10 @@ const MovementTable: React.FC = () => {
 		<div className="space-y-4">
 			<Form {...form}>
 				<form className="grid grid-cols-12 space-x-2">
-					<FormField
-						control={form.control}
-						name="type"
-						render={({ field }) => (
-							<FormItem className="col-span-2">
-								<FormLabel>Tipo de Movimentação</FormLabel>
-								<FormControl>
-									<Combobox
-										label="Selecionar tipo..."
-										searchLabel="Procurar..."
-										emptyLabel="Nenhum dado encontrado"
-										options={transactionTypesOptions}
-										value={field.value}
-										handleOnChange={field.onChange}
-									/>
-								</FormControl>
-								<FormDescription />
-								<FormMessage />
-							</FormItem>
-						)}
-					/>
-
+					<TypeFilter />
 					<CategoryFilter />
-
-					<FormField
-						control={form.control}
-						name="dateRange"
-						render={({ field }) => (
-							<FormItem className="col-span-3">
-								<FormLabel>Intervalo de datas</FormLabel>
-								<FormControl>
-									<DateRangePicker
-										date={field.value}
-										onDateChange={field.onChange}
-									/>
-								</FormControl>
-								<FormDescription />
-								<FormMessage />
-							</FormItem>
-						)}
-					/>
-
-					<div className="mb-2 self-end pl-2">
-						<Button variant="outline" type="button">
-							<Settings2 size={16} className="mr-2" />
-							Visualização
-						</Button>
-					</div>
+					<DateRangeFilter />
+					<VisibilityBtn />
 				</form>
 			</Form>
 
