@@ -58,7 +58,7 @@ const CustomTableHead: React.FC<TableHeadProps> = ({
 		return (
 			<TableHead
 				className={cn(isVisible ? 'table-cell' : 'hidden', 'my-1')}
-				style={{ minWidth: width }}
+				style={{ width }}
 			>
 				{name}
 			</TableHead>
@@ -66,60 +66,63 @@ const CustomTableHead: React.FC<TableHeadProps> = ({
 	}
 
 	return (
-		<Popover open={isOpen} onOpenChange={setIsOpen}>
-			<PopoverTrigger asChild>
-				<Button
-					variant="ghost"
-					role="combobox"
-					className={cn(isVisible ? 'flex' : 'hidden', 'my-1')}
-					style={{ minWidth: width }}
-				>
-					<TableHead className="flex items-center">{name}</TableHead>
-					{getOrderByIcon()}
-				</Button>
-			</PopoverTrigger>
-			<PopoverContent className="w-[160px] p-0">
-				<Command>
-					<CommandList>
-						<CommandGroup>
-							<CommandItem
-								className="flex gap-2"
-								onSelect={() => handleOnAction({ action: 'asc', key: field })}
-							>
-								<ArrowUpWideNarrow
-									size={16}
-									className="text-muted-foreground"
-								/>
-								Asc
-							</CommandItem>
-							<CommandItem
-								className="flex gap-2"
-								onSelect={() => handleOnAction({ action: 'desc', key: field })}
-							>
-								<ArrowDownWideNarrow
-									size={16}
-									className="text-muted-foreground"
-								/>
-								Desc
-							</CommandItem>
-						</CommandGroup>
-						<Separator orientation="horizontal" />
-						<CommandGroup>
-							<CommandItem
-								className="flex gap-2"
-								onSelect={() => {
-									setIsOpen(false)
-									handleOnAction({ action: 'visibility', key: field })
-								}}
-							>
-								<EyeOff size={16} className="text-muted-foreground" />
-								Esconder
-							</CommandItem>
-						</CommandGroup>
-					</CommandList>
-				</Command>
-			</PopoverContent>
-		</Popover>
+		<TableHead style={{ width }}>
+			<Popover open={isOpen} onOpenChange={setIsOpen}>
+				<PopoverTrigger asChild>
+					<Button
+						variant="ghost"
+						role="combobox"
+						className={cn(isVisible ? 'flex' : 'hidden', 'my-1 gap-2')}
+					>
+						{name}
+						{getOrderByIcon()}
+					</Button>
+				</PopoverTrigger>
+				<PopoverContent className="w-[160px] p-0">
+					<Command>
+						<CommandList>
+							<CommandGroup>
+								<CommandItem
+									className="flex gap-2"
+									onSelect={() => handleOnAction({ action: 'asc', key: field })}
+								>
+									<ArrowUpWideNarrow
+										size={16}
+										className="text-muted-foreground"
+									/>
+									Asc
+								</CommandItem>
+								<CommandItem
+									className="flex gap-2"
+									onSelect={() =>
+										handleOnAction({ action: 'desc', key: field })
+									}
+								>
+									<ArrowDownWideNarrow
+										size={16}
+										className="text-muted-foreground"
+									/>
+									Desc
+								</CommandItem>
+							</CommandGroup>
+							<Separator orientation="horizontal" />
+							<CommandGroup>
+								<CommandItem
+									className="flex gap-2"
+									onSelect={() => {
+										setIsOpen(false)
+										handleOnAction({ action: 'visibility', key: field })
+									}}
+								>
+									<EyeOff size={16} className="text-muted-foreground" />
+									Esconder
+								</CommandItem>
+							</CommandGroup>
+						</CommandList>
+					</Command>
+				</PopoverContent>
+			</Popover>
+		</TableHead>
 	)
 }
 
