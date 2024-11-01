@@ -58,8 +58,6 @@ const CategoryFilter = () => {
 		form.setValue('category', newValue)
 	}
 
-	console.log('typeWatcher: ', typeWatcher)
-
 	const getCategoriesBasedOnType = () => {
 		if (!typeWatcher) return categories
 

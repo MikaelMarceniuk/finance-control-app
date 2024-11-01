@@ -232,11 +232,11 @@ const MovementTable: React.FC = () => {
 							const { isVisible } = tableAction
 
 							return (
-								<TableRow key={row.id} className="w-24">
+								<TableRow key={row.id}>
 									<TableCell
 										className={cn(
 											isVisible.type ? 'table-cell' : 'hidden',
-											'w-24',
+											'min-w-24',
 										)}
 									>
 										<Badge
@@ -251,7 +251,7 @@ const MovementTable: React.FC = () => {
 									<TableCell
 										className={cn(
 											isVisible.description ? 'table-cell' : 'hidden',
-											'w-96',
+											'min-w-96',
 										)}
 									>
 										{row.description || (
@@ -262,7 +262,7 @@ const MovementTable: React.FC = () => {
 									<TableCell
 										className={cn(
 											isVisible.category ? 'table-cell' : 'hidden',
-											'w-40',
+											'min-w-40',
 										)}
 									>
 										<Badge variant="secondary">
@@ -271,7 +271,10 @@ const MovementTable: React.FC = () => {
 									</TableCell>
 
 									<TableCell
-										className={cn(isVisible.amount ? 'flex' : 'hidden', 'w-28')}
+										className={cn(
+											isVisible.amount ? 'flex' : 'hidden',
+											'min-w-28',
+										)}
 									>
 										{row.type == 'expense' && '-'}{' '}
 										{moneyFormatter.format(row.amount / 100)}
@@ -280,7 +283,7 @@ const MovementTable: React.FC = () => {
 									<TableCell
 										className={cn(
 											isVisible.installmentAmount ? 'table-cell' : 'hidden',
-											'w-28',
+											'min-w-28',
 										)}
 									>
 										{row.type == 'revenue'
@@ -293,7 +296,7 @@ const MovementTable: React.FC = () => {
 									<TableCell
 										className={cn(
 											isVisible.installmentNumber ? 'table-cell' : 'hidden',
-											'w-28',
+											'min-w-28',
 										)}
 									>
 										{row.installmentNumber || (

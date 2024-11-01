@@ -57,7 +57,8 @@ const CustomTableHead: React.FC<TableHeadProps> = ({
 	if (!isSortable) {
 		return (
 			<TableHead
-				className={cn(isVisible ? 'table-cell' : 'hidden', 'my-1', width)}
+				className={cn(isVisible ? 'table-cell' : 'hidden', 'my-1')}
+				style={{ minWidth: width }}
 			>
 				{name}
 			</TableHead>
@@ -70,7 +71,8 @@ const CustomTableHead: React.FC<TableHeadProps> = ({
 				<Button
 					variant="ghost"
 					role="combobox"
-					className={cn(isVisible ? 'flex' : 'hidden', 'my-1 w-28')}
+					className={cn(isVisible ? 'flex' : 'hidden', 'my-1')}
+					style={{ minWidth: width }}
 				>
 					<TableHead className="flex items-center">{name}</TableHead>
 					{getOrderByIcon()}
