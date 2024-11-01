@@ -24,7 +24,7 @@ const VisibilityBtn: React.FC = () => {
 
 	return (
 		<Popover open={isOpen} onOpenChange={setIsOpen}>
-			<PopoverTrigger className="mb-2 self-end pl-2">
+			<PopoverTrigger className="mb-2 self-end pl-2" asChild>
 				<div>
 					<Button variant="outline" type="button">
 						<Settings2 size={16} className="mr-2" />
