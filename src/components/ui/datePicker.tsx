@@ -16,9 +16,14 @@ import {
 type DatePickerProps = {
 	date: Date
 	handleOnChange: (date: Date | undefined) => void
+	isDisabled?: boolean
 }
 
-const DatePicker: React.FC<DatePickerProps> = ({ date, handleOnChange }) => {
+const DatePicker: React.FC<DatePickerProps> = ({
+	date,
+	handleOnChange,
+	isDisabled = false,
+}) => {
 	return (
 		<Popover>
 			<PopoverTrigger asChild>
@@ -28,6 +33,7 @@ const DatePicker: React.FC<DatePickerProps> = ({ date, handleOnChange }) => {
 						'w-full justify-start text-left font-normal',
 						!date && 'text-muted-foreground',
 					)}
+					disabled={isDisabled}
 				>
 					<CalendarIcon className="mr-2 h-4 w-4" />
 					{date ? format(date, 'PPP') : <span>Pick a date</span>}

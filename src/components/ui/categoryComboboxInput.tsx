@@ -27,12 +27,14 @@ type CategoryComboboxInput = {
 	type: ETransactionType
 	value: string
 	handleOnChange: (data: string | undefined) => void
+	isDisabled?: boolean
 }
 
 const CategoryComboboxInput: React.FC<CategoryComboboxInput> = ({
 	type,
 	value,
 	handleOnChange,
+	isDisabled = false,
 }) => {
 	const [open, setOpen] = React.useState(false)
 	const [searchValue, setSearchValue] = React.useState('')
@@ -68,6 +70,7 @@ const CategoryComboboxInput: React.FC<CategoryComboboxInput> = ({
 					role="combobox"
 					aria-expanded={open}
 					className="justify-between"
+					disabled={isDisabled}
 				>
 					{value
 						? categories.find((c) => c.id === value)?.name

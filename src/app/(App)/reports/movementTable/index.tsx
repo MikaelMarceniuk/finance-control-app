@@ -25,8 +25,8 @@ import CategoryFilter from './ui/categoryFilter'
 import TypeFilter from './ui/typeFilter'
 import DateRangeFilter from './ui/dateRangeFilter'
 import VisibilityBtn from './ui/visibilityBtn'
-import TransactionInfoDialog from './ui/transactionInfoDialog'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
+import TransactionInfoDialog from './transactionInfoDialog'
 
 const formSchema = z.object({
 	dateRange: z.object({
@@ -210,8 +210,6 @@ const MovementTable: React.FC = () => {
 		},
 		[searchParams],
 	)
-
-	const handleTableRowClick = (transactionId: string) => {}
 
 	const tableData = getTransactionsWithoutInstallments(transactions)
 

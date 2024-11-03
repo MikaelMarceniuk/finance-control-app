@@ -31,6 +31,10 @@ import AddTransactionApi from '@/api/addTransactionApi'
 import { endOfMonth, endOfYear, startOfMonth, startOfYear } from 'date-fns'
 import { useSWRConfig } from 'swr'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
+import useGetTransactions from '@/hooks/useGetTransactions'
+import useGetTransactionInfo from '@/hooks/useGetTransactionInfo'
+import { useEffect, useState } from 'react'
+import moneyFormatter from '@/lib/moneyFormatter'
 
 const formSchema = z.object({
 	description: z.string().min(0),
@@ -42,7 +46,7 @@ const formSchema = z.object({
 	installmentAmount: z.coerce.number(),
 })
 
-type formData = z.infer<typeof formSchema>
+type formData = Partial<z.infer<typeof formSchema>>
 
 const TransactionInfoDialog: React.FC = () => {
 	const { toast } = useToast()
@@ -52,51 +56,36 @@ const TransactionInfoDialog: React.FC = () => {
 	const pathname = usePathname()
 	const searchParams = useSearchParams()
 
-	const form = useForm<formData>({
-		resolver: zodResolver(formSchema),
-		defaultValues: {
-			description: '',
-			amount: 'R$ 0,00',
-			type: 'expense',
-			date: new Date(),
-			category: undefined,
-			isInstallment: false,
-			installmentAmount: 1,
-		},
+	const transactionId = searchParams.get('transaction') || undefined
+
+	const { transaction, isLoading } = useGetTransactionInfo({
+		id: transactionId,
 	})
 
-	// const isInstallment = form.watch('isInstallment')
+	const form = useForm<formData>({
+		resolver: zodResolver(formSchema),
+	})
 
-	// const onSubmit = async (data: formData) => {
-	// 	await AddTransactionApi({
-	// 		description: data.description,
-	// 		amount: Number(data.amount.replace(/\D/g, '')),
-	// 		type: 'expense',
-	// 		date: data.date,
-	// 		categoryId: data.category,
-	// 		isInstallment: data.isInstallment,
-	// 		installmentAmount: data.installmentAmount,
-	// 	})
+	const [isEditing, setIsEditing] = useState(false)
 
-	// 	const monthParams = {
-	// 		startDate: startOfMonth(new Date()),
-	// 		endDate: endOfMonth(new Date()),
-	// 	}
+	useEffect(() => {
+		if (!transaction) return
 
-	// 	mutate(['transaction', { ...monthParams }]) // currentBalance
-	// 	mutate(['transaction', { ...monthParams, type: 'expense' }]) // totalExpenses
-	// 	mutate(['transaction', { ...monthParams, type: 'revenue' }]) // ExpensesByCategoryInMonthChart
-	// 	mutate([
-	// 		'transaction',
-	// 		{ startDate: startOfYear(new Date()), endDate: endOfYear(new Date()) },
-	// 	]) // RevenueAndExpensesInMonthChart
+		const digits = String(transaction.amount).replace(/\D/g, '')
+		const formatedAmount = moneyFormatter.format(Number(digits) / 100)
 
-	// 	form.reset()
-	// 	toast({
-	// 		title: 'Despesa salva com sucesso!',
-	// 		variant: 'success',
-	// 	})
-	// }
+		form.setValue('description', transaction.description)
+		form.setValue('amount', formatedAmount)
+		form.setValue('type', transaction.type)
+		form.setValue('date', transaction.date)
+		form.setValue('category', transaction.categoryId)
+		form.setValue('isInstallment', transaction.isInstallment)
+		form.setValue('installmentAmount', Number(transaction.installmentAmount))
+	}, [form, transaction])
+
+	const isInstallment = form.watch('isInstallment')
+
+	const onSubmit = async (data: formData) => {}
 
 	const handleOnClose = () => {
 		const params = new URLSearchParams(searchParams.toString())
@@ -106,12 +95,12 @@ const TransactionInfoDialog: React.FC = () => {
 	}
 
 	return (
-		<Dialog open={Boolean(searchParams.get('transaction'))}>
+		<Dialog open={Boolean(transactionId)}>
 			<DialogContent onCloseHandler={handleOnClose}>
 				<DialogHeader>
 					<DialogTitle>Informações da movimentação</DialogTitle>
 				</DialogHeader>
-				{/* <Form {...form}>
+				<Form {...form}>
 					<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
 						<div className="grid grid-cols-2 gap-4">
 							<FormField
@@ -124,6 +113,7 @@ const TransactionInfoDialog: React.FC = () => {
 											<CurrencyInput
 												value={field.value}
 												onHandleChange={field.onChange}
+												isDisabled={!isEditing}
 											/>
 										</FormControl>
 										<FormMessage />
@@ -141,6 +131,7 @@ const TransactionInfoDialog: React.FC = () => {
 											<DatePicker
 												date={field.value}
 												handleOnChange={field.onChange}
+												isDisabled={!isEditing}
 											/>
 										</FormControl>
 										<FormMessage />
@@ -157,9 +148,10 @@ const TransactionInfoDialog: React.FC = () => {
 									<FormLabel>Categoria</FormLabel>
 									<FormControl>
 										<CategoryComboboxInput
-											type="expense"
+											type={transaction?.type}
 											value={field.value}
 											handleOnChange={field.onChange}
+											isDisabled={!isEditing}
 										/>
 									</FormControl>
 									<FormMessage />
@@ -174,7 +166,7 @@ const TransactionInfoDialog: React.FC = () => {
 								<FormItem>
 									<FormLabel>Descrição</FormLabel>
 									<FormControl>
-										<Textarea {...field} rows={2} />
+										<Textarea {...field} rows={2} disabled={!isEditing} />
 									</FormControl>
 									<FormMessage />
 								</FormItem>
@@ -191,6 +183,7 @@ const TransactionInfoDialog: React.FC = () => {
 											<Checkbox
 												checked={field.value}
 												onCheckedChange={field.onChange}
+												disabled={!isEditing}
 											/>
 										</FormControl>
 										<label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
@@ -209,7 +202,13 @@ const TransactionInfoDialog: React.FC = () => {
 									<FormItem>
 										<FormLabel>Quantidade de parcelas</FormLabel>
 										<FormControl>
-											<Input {...field} type="number" step={1} min={1} />
+											<Input
+												{...field}
+												type="number"
+												step={1}
+												min={1}
+												disabled={!isEditing}
+											/>
 										</FormControl>
 										<FormMessage />
 									</FormItem>
@@ -217,9 +216,9 @@ const TransactionInfoDialog: React.FC = () => {
 							/>
 						)}
 
-						<Button type="submit">Adicionar</Button>
+						<Button type="submit">Atualizar</Button>
 					</form>
-				</Form> */}
+				</Form>
 			</DialogContent>
 		</Dialog>
 	)

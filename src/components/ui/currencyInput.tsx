@@ -13,11 +13,13 @@ const moneyFormatter = Intl.NumberFormat('pt-BR', {
 type CurrencyInputProps = {
 	value: string
 	onHandleChange: (value: string) => void
+	isDisabled?: boolean
 }
 
 const CurrencyInput: React.FC<CurrencyInputProps> = ({
 	value,
 	onHandleChange,
+	isDisabled = false,
 }) => {
 	return (
 		<Input
@@ -28,6 +30,7 @@ const CurrencyInput: React.FC<CurrencyInputProps> = ({
 				onHandleChange(formatedValue)
 			}}
 			value={value}
+			disabled={isDisabled}
 		/>
 	)
 }
