@@ -17,7 +17,7 @@ import { z } from 'zod'
 import useGetCategory from '@/hooks/useGetCategory'
 import useGetTransactions from '@/hooks/useGetTransactions'
 import getTransactionsWithoutInstallments from '@/lib/getTransactionsWithoutInstallments'
-import { createContext, useContext, useState } from 'react'
+import React, { createContext, useCallback, useContext, useState } from 'react'
 import { TransactionsOrderBy } from '@/api/getTransactions'
 import { cn } from '@/lib/utils'
 import CustomTableHead from './ui/tableHead'
@@ -25,6 +25,8 @@ import CategoryFilter from './ui/categoryFilter'
 import TypeFilter from './ui/typeFilter'
 import DateRangeFilter from './ui/dateRangeFilter'
 import VisibilityBtn from './ui/visibilityBtn'
+import TransactionInfoDialog from './ui/transactionInfoDialog'
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 
 const formSchema = z.object({
 	dateRange: z.object({
@@ -132,6 +134,10 @@ const TableActionProvider = createContext({} as TableActionProviderType)
 export const useTableActionProvider = () => useContext(TableActionProvider)
 
 const MovementTable: React.FC = () => {
+	const router = useRouter()
+	const searchParams = useSearchParams()
+	const pathname = usePathname()
+
 	const form = useForm<movementTableFormType>({
 		resolver: zodResolver(formSchema),
 		defaultValues: formDefaultValues,
@@ -195,124 +201,152 @@ const MovementTable: React.FC = () => {
 		setTableAction(newTableAction!)
 	}
 
+	const createQueryString = useCallback(
+		(name: string, value: string) => {
+			const params = new URLSearchParams(searchParams.toString())
+			params.set(name, value)
+
+			return params.toString()
+		},
+		[searchParams],
+	)
+
+	const handleTableRowClick = (transactionId: string) => {}
+
 	const tableData = getTransactionsWithoutInstallments(transactions)
 
 	return (
-		<TableActionProvider.Provider
-			value={{
-				handleOnAction: handleTableHeaderAction,
-				values: tableAction,
-				columns: tableColumns,
-			}}
-		>
-			<div className="space-y-4">
-				<Form {...form}>
-					<form className="grid grid-cols-12 space-x-2">
-						<TypeFilter />
-						<CategoryFilter />
-						<DateRangeFilter />
-						<VisibilityBtn />
-					</form>
-				</Form>
+		<React.Fragment>
+			<TransactionInfoDialog />
+			<TableActionProvider.Provider
+				value={{
+					handleOnAction: handleTableHeaderAction,
+					values: tableAction,
+					columns: tableColumns,
+				}}
+			>
+				<div className="space-y-4">
+					<Form {...form}>
+						<form className="grid grid-cols-12 space-x-2">
+							<TypeFilter />
+							<CategoryFilter />
+							<DateRangeFilter />
+							<VisibilityBtn />
+						</form>
+					</Form>
 
-				<Table>
-					<TableHeader>
-						<TableRow>
-							{tableColumns.map((column) => (
-								<CustomTableHead
-									key={column.field}
-									isVisible={tableAction.isVisible[column.field]}
-									{...column}
-								/>
-							))}
-						</TableRow>
-					</TableHeader>
-					<TableBody>
-						{tableData.map((row) => {
-							const { isVisible } = tableAction
+					<Table>
+						<TableHeader>
+							<TableRow>
+								{tableColumns.map((column) => (
+									<CustomTableHead
+										key={column.field}
+										isVisible={tableAction.isVisible[column.field]}
+										{...column}
+									/>
+								))}
+							</TableRow>
+						</TableHeader>
+						<TableBody>
+							{tableData.map((row) => {
+								const { isVisible } = tableAction
 
-							return (
-								<TableRow key={row.id}>
-									<TableCell
-										className={cn(
-											isVisible.type ? 'table-cell' : 'hidden',
-											'w-24',
-										)}
+								return (
+									<TableRow
+										key={row.id}
+										className="cursor-pointer"
+										onClick={() =>
+											router.push(
+												pathname +
+													'?' +
+													createQueryString('transaction', row.id),
+											)
+										}
 									>
-										<Badge
-											variant={
-												row.type == 'expense' ? 'destructive' : 'revenue'
-											}
+										<TableCell
+											className={cn(
+												isVisible.type ? 'table-cell' : 'hidden',
+												'w-24',
+											)}
 										>
-											{row.type == 'expense' ? 'Despesa' : 'Receita'}
-										</Badge>
-									</TableCell>
+											<Badge
+												variant={
+													row.type == 'expense' ? 'destructive' : 'revenue'
+												}
+											>
+												{row.type == 'expense' ? 'Despesa' : 'Receita'}
+											</Badge>
+										</TableCell>
 
-									<TableCell
-										className={cn(
-											isVisible.description ? 'table-cell' : 'hidden',
-											'w-96',
-										)}
-									>
-										{row.description || (
-											<span className="text-gray-600">Sem descrição</span>
-										)}
-									</TableCell>
+										<TableCell
+											className={cn(
+												isVisible.description ? 'table-cell' : 'hidden',
+												'w-96',
+											)}
+										>
+											{row.description || (
+												<span className="text-gray-600">Sem descrição</span>
+											)}
+										</TableCell>
 
-									<TableCell
-										className={cn(
-											isVisible.category ? 'table-cell' : 'hidden',
-											'w-40',
-										)}
-									>
-										<Badge variant="secondary">
-											{categories.find((c) => c.id == row.categoryId)?.name}
-										</Badge>
-									</TableCell>
+										<TableCell
+											className={cn(
+												isVisible.category ? 'table-cell' : 'hidden',
+												'w-40',
+											)}
+										>
+											<Badge variant="secondary">
+												{categories.find((c) => c.id == row.categoryId)?.name}
+											</Badge>
+										</TableCell>
 
-									<TableCell
-										className={cn(isVisible.amount ? 'flex' : 'hidden', 'w-28')}
-									>
-										{row.type == 'expense' && '-'}{' '}
-										{moneyFormatter.format(row.amount / 100)}
-									</TableCell>
+										<TableCell
+											className={cn(
+												isVisible.amount ? 'flex' : 'hidden',
+												'w-28',
+											)}
+										>
+											{row.type == 'expense' && '-'}{' '}
+											{moneyFormatter.format(row.amount / 100)}
+										</TableCell>
 
-									<TableCell
-										className={cn(
-											isVisible.installmentAmount ? 'table-cell' : 'hidden',
-											'w-28',
-										)}
-									>
-										{row.type == 'revenue'
-											? 'A vista'
-											: row.installmentAmount == 1
+										<TableCell
+											className={cn(
+												isVisible.installmentAmount ? 'table-cell' : 'hidden',
+												'w-28',
+											)}
+										>
+											{row.type == 'revenue'
 												? 'A vista'
-												: row.installmentAmount}
-									</TableCell>
+												: row.installmentAmount == 1
+													? 'A vista'
+													: row.installmentAmount}
+										</TableCell>
 
-									<TableCell
-										className={cn(
-											isVisible.installmentNumber ? 'table-cell' : 'hidden',
-											'w-28',
-										)}
-									>
-										{row.installmentNumber || (
-											<span className="text-gray-600">Sem parcelas</span>
-										)}
-									</TableCell>
+										<TableCell
+											className={cn(
+												isVisible.installmentNumber ? 'table-cell' : 'hidden',
+												'w-28',
+											)}
+										>
+											{row.installmentNumber || (
+												<span className="text-gray-600">Sem parcelas</span>
+											)}
+										</TableCell>
 
-									<TableCell
-										className={cn(isVisible.date ? 'table-cell' : 'hidden')}
-									>
-										{format(new Date(row.date), 'dd/MM/yyyy')}
-									</TableCell>
-								</TableRow>
-							)
-						})}
-					</TableBody>
-				</Table>
-			</div>
-		</TableActionProvider.Provider>
+										<TableCell
+											className={cn(isVisible.date ? 'table-cell' : 'hidden')}
+										>
+											{format(new Date(row.date), 'dd/MM/yyyy')}
+										</TableCell>
+									</TableRow>
+								)
+							})}
+						</TableBody>
+					</Table>
+				</div>
+			</TableActionProvider.Provider>
+		</React.Fragment>
 	)
 }
 
