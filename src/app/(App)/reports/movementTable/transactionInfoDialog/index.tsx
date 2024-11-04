@@ -44,6 +44,7 @@ const formSchema = z.object({
 	category: z.string(),
 	isInstallment: z.boolean(),
 	installmentAmount: z.coerce.number(),
+	isEditMode: z.boolean(),
 })
 
 type formData = Partial<z.infer<typeof formSchema>>
@@ -64,9 +65,12 @@ const TransactionInfoDialog: React.FC = () => {
 
 	const form = useForm<formData>({
 		resolver: zodResolver(formSchema),
+		defaultValues: {
+			isEditMode: false,
+		},
 	})
 
-	const [isEditing, setIsEditing] = useState(false)
+	const isEditing = form.watch('isEditMode')
 
 	useEffect(() => {
 		if (!transaction) return
@@ -102,6 +106,26 @@ const TransactionInfoDialog: React.FC = () => {
 				</DialogHeader>
 				<Form {...form}>
 					<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+						<FormField
+							control={form.control}
+							name="isEditMode"
+							render={({ field }) => (
+								<FormItem>
+									<div className="items-top flex space-x-2">
+										<FormControl>
+											<Checkbox
+												checked={field.value}
+												onCheckedChange={field.onChange}
+											/>
+										</FormControl>
+										<label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+											Editar movimentação?
+										</label>
+									</div>
+								</FormItem>
+							)}
+						/>
+
 						<div className="grid grid-cols-2 gap-4">
 							<FormField
 								control={form.control}
@@ -216,7 +240,7 @@ const TransactionInfoDialog: React.FC = () => {
 							/>
 						)}
 
-						<Button type="submit">Atualizar</Button>
+						{isEditing && <Button type="submit">Atualizar</Button>}
 					</form>
 				</Form>
 			</DialogContent>
