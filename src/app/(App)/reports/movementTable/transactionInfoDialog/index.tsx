@@ -6,11 +6,8 @@ import {
 	DialogContent,
 	DialogHeader,
 	DialogTitle,
-	DialogTrigger,
 } from '@/components/ui/dialog'
-import { CircleMinus } from 'lucide-react'
 import { useForm } from 'react-hook-form'
-import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 import {
 	Form,
@@ -27,14 +24,13 @@ import CurrencyInput from '@/components/ui/currencyInput'
 import { Input } from '@/components/ui/input'
 import CategoryComboboxInput from '@/components/ui/categoryComboboxInput'
 import { Checkbox } from '@/components/ui/checkbox'
-import AddTransactionApi from '@/api/addTransactionApi'
-import { endOfMonth, endOfYear, startOfMonth, startOfYear } from 'date-fns'
-import { useSWRConfig } from 'swr'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
-import useGetTransactions from '@/hooks/useGetTransactions'
 import useGetTransactionInfo from '@/hooks/useGetTransactionInfo'
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import moneyFormatter from '@/lib/moneyFormatter'
+import UpdateTransactionApi from '@/api/updateTransactionApi'
+import TransactionTypeComboboxInput from '@/components/ui/transactionTypeComboboxInput'
+import { z } from 'zod'
 
 const formSchema = z.object({
 	description: z.string().min(0),
@@ -51,7 +47,6 @@ type formData = Partial<z.infer<typeof formSchema>>
 
 const TransactionInfoDialog: React.FC = () => {
 	const { toast } = useToast()
-	const { mutate } = useSWRConfig()
 
 	const router = useRouter()
 	const pathname = usePathname()
@@ -59,7 +54,7 @@ const TransactionInfoDialog: React.FC = () => {
 
 	const transactionId = searchParams.get('transaction') || undefined
 
-	const { transaction, isLoading } = useGetTransactionInfo({
+	const { transaction } = useGetTransactionInfo({
 		id: transactionId,
 	})
 
@@ -87,15 +82,51 @@ const TransactionInfoDialog: React.FC = () => {
 		form.setValue('installmentAmount', Number(transaction.installmentAmount))
 	}, [form, transaction])
 
+	const typeWatcher = form.watch('type')
 	const isInstallment = form.watch('isInstallment')
 
-	const onSubmit = async (data: formData) => {}
+	const onSubmit = async (data: formData) => {
+		const { success, data: parsedData } = formSchema.safeParse(data)
+
+		if (!success) {
+			toast({
+				title: 'Verifique os dados e tente novamente!',
+				variant: 'destructive',
+			})
+			return
+		}
+
+		if (parsedData.isEditMode) {
+			try {
+				await UpdateTransactionApi({
+					id: transactionId!,
+					description: parsedData.description,
+					amount: Number(parsedData.amount.replace(/\D/g, '')),
+					type: parsedData.type,
+					date: parsedData.date,
+					categoryId: parsedData.category,
+				})
+				toast({
+					title: 'Movimentação atualizada com sucesso!',
+					variant: 'success',
+				})
+				return handleOnClose()
+			} catch (e) {
+				toast({
+					title: 'Erro ao atualizar a movimentação!',
+					variant: 'destructive',
+				})
+				return
+			}
+		}
+	}
 
 	const handleOnClose = () => {
 		const params = new URLSearchParams(searchParams.toString())
 		params.delete('transaction')
 
 		router.push(pathname + '?' + params.toString())
+		form.reset()
 	}
 
 	return (
@@ -164,24 +195,44 @@ const TransactionInfoDialog: React.FC = () => {
 							/>
 						</div>
 
-						<FormField
-							control={form.control}
-							name="category"
-							render={({ field }) => (
-								<FormItem className="flex flex-col">
-									<FormLabel>Categoria</FormLabel>
-									<FormControl>
-										<CategoryComboboxInput
-											type={transaction?.type}
-											value={field.value}
-											handleOnChange={field.onChange}
-											isDisabled={!isEditing}
-										/>
-									</FormControl>
-									<FormMessage />
-								</FormItem>
-							)}
-						/>
+						<div className="grid grid-cols-2 gap-4">
+							<FormField
+								control={form.control}
+								name="category"
+								render={({ field }) => (
+									<FormItem className="flex flex-col">
+										<FormLabel>Categoria</FormLabel>
+										<FormControl>
+											<CategoryComboboxInput
+												type={transaction?.type}
+												value={field.value}
+												handleOnChange={field.onChange}
+												isDisabled={!isEditing}
+											/>
+										</FormControl>
+										<FormMessage />
+									</FormItem>
+								)}
+							/>
+
+							<FormField
+								control={form.control}
+								name="type"
+								render={({ field }) => (
+									<FormItem className="flex flex-col">
+										<FormLabel>Tipo</FormLabel>
+										<FormControl>
+											<TransactionTypeComboboxInput
+												value={field.value}
+												handleOnChange={field.onChange}
+												isDisabled={!isEditing}
+											/>
+										</FormControl>
+										<FormMessage />
+									</FormItem>
+								)}
+							/>
+						</div>
 
 						<FormField
 							control={form.control}
@@ -197,28 +248,30 @@ const TransactionInfoDialog: React.FC = () => {
 							)}
 						/>
 
-						<FormField
-							control={form.control}
-							name="isInstallment"
-							render={({ field }) => (
-								<FormItem>
-									<div className="items-top flex space-x-2">
-										<FormControl>
-											<Checkbox
-												checked={field.value}
-												onCheckedChange={field.onChange}
-												disabled={!isEditing}
-											/>
-										</FormControl>
-										<label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-											Despesa foi parcelada?
-										</label>
-									</div>
-								</FormItem>
-							)}
-						/>
+						{typeWatcher == 'expense' && (
+							<FormField
+								control={form.control}
+								name="isInstallment"
+								render={({ field }) => (
+									<FormItem>
+										<div className="items-top flex space-x-2">
+											<FormControl>
+												<Checkbox
+													checked={field.value}
+													onCheckedChange={field.onChange}
+													disabled={!isEditing}
+												/>
+											</FormControl>
+											<label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+												Despesa foi parcelada?
+											</label>
+										</div>
+									</FormItem>
+								)}
+							/>
+						)}
 
-						{isInstallment && (
+						{isInstallment && typeWatcher == 'expense' && (
 							<FormField
 								control={form.control}
 								name="installmentAmount"
@@ -240,7 +293,12 @@ const TransactionInfoDialog: React.FC = () => {
 							/>
 						)}
 
-						{isEditing && <Button type="submit">Atualizar</Button>}
+						<div className="flex justify-end gap-2">
+							{isEditing && <Button type="submit">Atualizar</Button>}
+							<Button type="button" variant="destructive">
+								Deletar
+							</Button>
+						</div>
 					</form>
 				</Form>
 			</DialogContent>
