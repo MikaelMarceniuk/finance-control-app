@@ -31,6 +31,7 @@ import moneyFormatter from '@/lib/moneyFormatter'
 import UpdateTransactionApi from '@/api/updateTransactionApi'
 import TransactionTypeComboboxInput from '@/components/ui/transactionTypeComboboxInput'
 import { z } from 'zod'
+import DeleteTransactionApi from '@/api/deleteTransactionApi'
 
 const formSchema = z.object({
 	description: z.string().min(0),
@@ -118,6 +119,24 @@ const TransactionInfoDialog: React.FC = () => {
 				})
 				return
 			}
+		}
+	}
+
+	const handleOnDelete = async () => {
+		try {
+			await DeleteTransactionApi({
+				id: transactionId!,
+			})
+			toast({
+				title: 'Movimentação deletada com sucesso!',
+				variant: 'success',
+			})
+			handleOnClose()
+		} catch (e) {
+			toast({
+				title: 'Erro ao deletar a movimentação!',
+				variant: 'destructive',
+			})
 		}
 	}
 
@@ -295,7 +314,11 @@ const TransactionInfoDialog: React.FC = () => {
 
 						<div className="flex justify-end gap-2">
 							{isEditing && <Button type="submit">Atualizar</Button>}
-							<Button type="button" variant="destructive">
+							<Button
+								type="button"
+								variant="destructive"
+								onClick={handleOnDelete}
+							>
 								Deletar
 							</Button>
 						</div>
