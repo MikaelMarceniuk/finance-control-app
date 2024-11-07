@@ -37,7 +37,6 @@ const RootLayout: React.FC<RootLayoutProps> = ({ children }) => {
 					enableSystem
 					disableTransitionOnChange
 				>
-					<Navbar />
 					{children}
 					<Toaster />
 				</ThemeProvider>
