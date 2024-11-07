@@ -2,8 +2,9 @@ import type { Metadata } from 'next'
 import localFont from 'next/font/local'
 import './globals.css'
 import ThemeProvider from '@/components/providers/themeProvider'
-import Navbar from '@/components/navbar'
 import { Toaster } from '@/components/ui/toaster'
+import { SessionProvider } from 'next-auth/react'
+import SessionWatcher from '@/components/sessionWatcher'
 
 const geistSans = localFont({
 	src: './fonts/GeistVF.woff',
@@ -37,7 +38,10 @@ const RootLayout: React.FC<RootLayoutProps> = ({ children }) => {
 					enableSystem
 					disableTransitionOnChange
 				>
-					{children}
+					<SessionProvider>
+						<SessionWatcher />
+						{children}
+					</SessionProvider>
 					<Toaster />
 				</ThemeProvider>
 			</body>
