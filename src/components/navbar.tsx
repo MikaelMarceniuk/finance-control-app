@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation'
 import { Github, HandCoins } from 'lucide-react'
 import Link from 'next/link'
 import { Separator } from './ui/separator'
+import UserAvatar from './userAvatar'
 
 const Navbar = () => {
 	const pathname = usePathname()
@@ -53,6 +54,7 @@ const Navbar = () => {
 						</Button>
 					</Link>
 					<ThemeToggle />
+					<UserAvatar />
 				</div>
 			</nav>
 		</div>
