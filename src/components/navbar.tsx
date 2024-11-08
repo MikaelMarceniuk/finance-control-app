@@ -3,7 +3,7 @@
 import { ThemeToggle } from '@/components/themeToggle'
 import { Button } from '@/components/ui/button'
 import { usePathname } from 'next/navigation'
-import { Github, HandCoins } from 'lucide-react'
+import { HandCoins } from 'lucide-react'
 import Link from 'next/link'
 import { Separator } from './ui/separator'
 import UserAvatar from './userAvatar'
@@ -47,12 +47,7 @@ const Navbar = () => {
 					</Link>
 				</div>
 
-				<div className="flex gap-2">
-					<Link href="https://github.com/MikaelMarceniuk" target="_blank">
-						<Button variant="ghost">
-							<Github />
-						</Button>
-					</Link>
+				<div className="flex gap-4">
 					<ThemeToggle />
 					<UserAvatar />
 				</div>
