@@ -22,6 +22,7 @@ import AddCategoryApi from '@/api/addCategoryApi'
 import useGetCategory from '@/hooks/useGetCategory'
 import { useToast } from '@/hooks/use-toast'
 import { ETransactionType } from '@prisma/client'
+import { useSession } from 'next-auth/react'
 
 type CategoryComboboxInput = {
 	type: ETransactionType
@@ -40,10 +41,15 @@ const CategoryComboboxInput: React.FC<CategoryComboboxInput> = ({
 	const [searchValue, setSearchValue] = React.useState('')
 	const { categories, mutate } = useGetCategory({ type })
 	const { toast } = useToast()
+	const { data: session } = useSession()
 
 	const handleCreateNewCategory = async () => {
 		try {
-			const newCategory = await AddCategoryApi({ type, name: searchValue })
+			const newCategory = await AddCategoryApi({
+				type,
+				name: searchValue,
+				userId: session!.user.id,
+			})
 
 			mutate([...categories, newCategory])
 			setSearchValue('')

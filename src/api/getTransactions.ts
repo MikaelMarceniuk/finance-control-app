@@ -29,6 +29,7 @@ export type GetTransactionsApiParams = {
 	endDate?: Date
 	categoryId?: string[]
 	orderBy?: TransactionsOrderBy
+	userId: string
 }
 
 const GetTransactionsApi = async ({
@@ -37,6 +38,7 @@ const GetTransactionsApi = async ({
 	endDate,
 	categoryId,
 	orderBy,
+	userId,
 }: GetTransactionsApiParams): Promise<TransactionsWithChildrens[]> => {
 	return await prisma.transaction.findMany({
 		where: {
@@ -49,6 +51,9 @@ const GetTransactionsApi = async ({
 			},
 			categoryId: {
 				in: categoryId,
+			},
+			userId: {
+				equals: userId,
 			},
 		},
 		include: {

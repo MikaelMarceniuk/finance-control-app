@@ -28,6 +28,7 @@ import CategoryComboboxInput from '@/components/ui/categoryComboboxInput'
 import AddTransactionApi from '@/api/addTransactionApi'
 import { useSWRConfig } from 'swr'
 import { endOfMonth, endOfYear, startOfMonth, startOfYear } from 'date-fns'
+import { useSession } from 'next-auth/react'
 
 const formSchema = z.object({
 	description: z.string().min(0),
@@ -43,6 +44,7 @@ type formData = z.infer<typeof formSchema>
 const AddRevenueDialog = () => {
 	const { toast } = useToast()
 	const { mutate } = useSWRConfig()
+	const { data: session } = useSession()
 
 	const form = useForm<formData>({
 		resolver: zodResolver(formSchema),
@@ -64,6 +66,7 @@ const AddRevenueDialog = () => {
 			date: data.date,
 			categoryId: data.category,
 			isInstallment: false,
+			userId: session!.user.id,
 		})
 
 		const monthParams = {

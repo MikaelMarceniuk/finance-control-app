@@ -30,6 +30,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import AddTransactionApi from '@/api/addTransactionApi'
 import { endOfMonth, endOfYear, startOfMonth, startOfYear } from 'date-fns'
 import { useSWRConfig } from 'swr'
+import { useSession } from 'next-auth/react'
 
 const formSchema = z.object({
 	description: z.string().min(0),
@@ -46,6 +47,7 @@ type formData = z.infer<typeof formSchema>
 const AddExpenseDialog = () => {
 	const { toast } = useToast()
 	const { mutate } = useSWRConfig()
+	const { data: session } = useSession()
 
 	const form = useForm<formData>({
 		resolver: zodResolver(formSchema),
@@ -71,6 +73,7 @@ const AddExpenseDialog = () => {
 			categoryId: data.category,
 			isInstallment: data.isInstallment,
 			installmentAmount: data.installmentAmount,
+			userId: session!.user.id,
 		})
 
 		const monthParams = {
