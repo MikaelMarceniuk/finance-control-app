@@ -19,6 +19,7 @@ model Transaction {
   installmentAmount   Int?
   installmentNumber   Int?
   parentTransactionId String?
+  userId              String           @map("user_id")
 
   category Category @relation(fields: [categoryId], references: [id], onDelete: NoAction)
 
@@ -30,6 +31,7 @@ model Category {
   name        String
   type        ETransactionType
   Transaction Transaction[]
+  userId      String           @map("user_id")
 
   @@map("category")
 }
