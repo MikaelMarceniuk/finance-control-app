@@ -27,6 +27,7 @@ import DateRangeFilter from './ui/dateRangeFilter'
 import VisibilityBtn from './ui/visibilityBtn'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import TransactionInfoDialog from './transactionInfoDialog'
+import { Skeleton } from '@/components/ui/skeleton'
 
 const formSchema = z.object({
 	dateRange: z.object({
@@ -162,7 +163,7 @@ const MovementTable: React.FC = () => {
 	const categoryWatcher = form.watch('category')
 	const dateWatcher = form.watch('dateRange')
 
-	const { transactions } = useGetTransactions({
+	const { transactions, isLoading } = useGetTransactions({
 		startDate: dateWatcher.from,
 		endDate: endOfDay(dateWatcher.to),
 		type: typeWatcher,
@@ -246,6 +247,40 @@ const MovementTable: React.FC = () => {
 							</TableRow>
 						</TableHeader>
 						<TableBody>
+							{isLoading ||
+								(tableData.length == 0 &&
+									Array.from({ length: 6 }).map((_, i) => (
+										<TableRow key={i}>
+											<TableCell>
+												<Skeleton className="h-4 w-12 rounded-full" />
+											</TableCell>
+
+											<TableCell>
+												<Skeleton className="h-6 w-96 rounded-full" />
+											</TableCell>
+
+											<TableCell>
+												<Skeleton className="h-4 w-16 rounded-full" />
+											</TableCell>
+
+											<TableCell>
+												<Skeleton className="h-6 w-20 rounded-full" />
+											</TableCell>
+
+											<TableCell>
+												<Skeleton className="h-6 w-20 rounded-full" />
+											</TableCell>
+
+											<TableCell>
+												<Skeleton className="h-6 w-28 rounded-full" />
+											</TableCell>
+
+											<TableCell>
+												<Skeleton className="h-6 w-28 rounded-full" />
+											</TableCell>
+										</TableRow>
+									)))}
+
 							{tableData.map((row) => {
 								const { isVisible } = tableAction
 
